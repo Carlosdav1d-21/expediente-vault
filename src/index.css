@@ -1,0 +1,196 @@
+:root {
+  --bg: #0f1210;
+  --panel: #1a1e1a;
+  --paper: #e8e2d0;
+  --ink: #1a1e1a;
+  --accent: #b3541e;
+  --accent-2: #d4af37;
+  --border: #3a3f38;
+  --danger: #8b2e2e;
+  font-family: "Courier New", Courier, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--paper);
+}
+
+.app-shell {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+.app-header h1 {
+  letter-spacing: 4px;
+  font-size: 28px;
+  margin-bottom: 4px;
+  color: var(--paper);
+}
+
+.subtitle {
+  color: #9a9384;
+  margin-top: 0;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px dashed var(--border);
+  border-bottom: 1px dashed var(--border);
+  padding: 8px 0;
+  margin-bottom: 16px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--paper);
+  padding: 8px 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.panel h2 {
+  margin-top: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 16px;
+  color: var(--accent-2);
+}
+
+.auth-panel {
+  max-width: 380px;
+  margin: 40px auto;
+}
+
+.stack { display: flex; flex-direction: column; gap: 12px; }
+
+label { display: flex; flex-direction: column; font-size: 12px; gap: 4px; }
+
+input, select {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  padding: 8px;
+  font-family: inherit;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.link-btn {
+  background: none;
+  color: var(--accent-2);
+  text-decoration: underline;
+  padding: 4px 0;
+  text-transform: none;
+}
+
+.danger-btn { background: var(--danger); }
+
+.error-text { color: #e07a5f; font-size: 13px; }
+.muted { color: #9a9384; font-size: 13px; }
+
+.search-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.search-row input { flex: 1; min-width: 200px; }
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  background: var(--paper);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+
+.card img { width: 100%; height: 180px; object-fit: cover; }
+.card-placeholder {
+  width: 100%; height: 180px; display: flex; align-items: center; justify-content: center;
+  background: #cfc7ae; font-size: 11px; color: #6b6552;
+}
+.card-body { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.card-title { font-weight: bold; font-size: 13px; margin: 0; }
+.card-meta { font-size: 11px; color: #6b6552; margin: 0; }
+
+.duel-row { display: flex; gap: 16px; }
+.duel-card {
+  flex: 1;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 12px;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+.duel-card:hover { border-color: var(--accent-2); }
+.duel-card img { width: 100%; height: 220px; object-fit: cover; margin-bottom: 8px; }
+
+.dossier-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.dossier-row {
+  display: grid;
+  grid-template-columns: 32px 32px 44px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 6px 10px;
+}
+.dossier-row img { width: 44px; height: 44px; object-fit: cover; }
+.rank-num { font-weight: bold; color: #6b6552; }
+.tier-badge {
+  color: #fff; font-weight: bold; text-align: center; border-radius: 3px; padding: 2px 0; font-size: 12px;
+}
+.dossier-title { font-size: 13px; }
+
+.audit-log { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.audit-row {
+  display: grid;
+  grid-template-columns: 160px 120px 100px 1fr;
+  gap: 8px;
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: 4px;
+  color: #cfc7ae;
+}
+.audit-action { color: var(--accent-2); text-transform: uppercase; }
