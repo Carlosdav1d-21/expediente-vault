@@ -33,7 +33,7 @@ export async function searchItunes(query: string): Promise<MediaItem[]> {
     category: "cancion",
     title: `${r.trackName} — ${r.artistName}`,
     year: r.releaseDate ? Number(r.releaseDate.slice(0, 4)) : null,
-    imageUrl: r.artworkUrl100,
+    imageUrl: r.artworkUrl100 ? r.artworkUrl100.replace("100x100", "600x600") : null,
     // iTunes no expone una métrica de popularidad pública; se usa un valor
     // neutro fijo y el ranking real del ítem lo define el motor Elo propio,
     // no el dato crudo de la API.
