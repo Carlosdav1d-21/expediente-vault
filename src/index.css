@@ -221,6 +221,15 @@ button:disabled {
   gap: 16px;
 }
 
+.duel-card {
+  flex: 1;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 12px;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
 .duel-card img {
   width: 100%;
   aspect-ratio: 2 / 3;
