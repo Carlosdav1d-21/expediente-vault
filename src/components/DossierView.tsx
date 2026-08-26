@@ -33,7 +33,11 @@ export function DossierView({ entries, onRemove }: { entries: RankingEntry[]; on
             <span className="tier-badge" style={{ backgroundColor: TIER_COLORS[tiers.get(entry.itemId) ?? "D"] }}>
               {tiers.get(entry.itemId)}
             </span>
-            {entry.item.imageUrl && <img src={entry.item.imageUrl} alt="" />}
+            {entry.item.imageUrl ? (
+              <img src={entry.item.imageUrl} alt="" />
+            ) : (
+              <span className="dossier-img-placeholder" aria-hidden="true" />
+            )}
             <span className="dossier-title">{entry.item.title}</span>
             <span className="card-meta">Elo {entry.eloScore}</span>
             <button className="danger-btn" onClick={() => onRemove(entry.itemId)}>
