@@ -83,12 +83,6 @@ npm run dev
 - Publicar la aplicación en un sitio real (hosting)
 - Evaluar si más adelante conviene tener un servidor propio en vez de guardar todo en el navegador
 
----
-
 ## Nota importante
 
-<<<<<<< HEAD
 Esta versión guarda la información directamente en el navegador del usuario, no en un servidor propio. Esto es suficiente para el alcance de este curso, pero **no sería la forma correcta de manejarlo en una aplicación real** que vaya a usar más gente — eso requeriría un servidor y una base de datos, algo que queda fuera del alcance de este avance.
-=======
-Esta versión guarda la información directamente en el navegador del usuario, no en un servidor propio. Esto es suficiente para el alcance de este curso, pero **no sería la forma correcta de manejarlo en una aplicación real** que vaya a usar más gente — eso requeriría un servidor y una base de datos, algo que queda fuera del alcance de este avance.
->>>>>>> 9ba4e68 (chore: actualizar dependencias de Vite y ajustes menores de README)
