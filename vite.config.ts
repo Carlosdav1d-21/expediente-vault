@@ -3,27 +3,40 @@ import { defineConfig, type Plugin } from 'vite'
 
 // ============================================================================
 // Capa 7 — Cabeceras HTTP de seguridad.
-// En `vite dev`/`vite preview` estas cabeceras se inyectan vía middleware,
-// porque ambos son servidores propios de Vite. En producción (hosting
-// estático tipo Netlify/Vercel/GitHub Pages) Vite ya no sirve el sitio, así
-// que las mismas cabeceras se replican en `public/_headers`, que esas
-// plataformas leen automáticamente al desplegar.
+//
+// La CSP de PRODUCCIÓN es estricta: no permite scripts en línea.
+// En modo DESARROLLO se relaja únicamente `script-src` porque Vite inyecta
+// un pequeño script en línea para el "Fast Refresh" de React (recarga
+// automática al guardar cambios) — sin esa concesión, la app no puede
+// ni siquiera arrancar en `npm run dev`. Esto NUNCA se despliega a
+// producción: `public/_headers` (lo que de verdad usa el hosting real)
+// mantiene la versión estricta.
 // ============================================================================
-const SECURITY_HEADERS: Record<string, string> = {
-  'Content-Security-Policy':
-    "default-src 'self'; img-src 'self' https: data:; connect-src 'self' https://api.themoviedb.org https://image.tmdb.org https://api.rawg.io https://itunes.apple.com; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';",
-  'X-Frame-Options': 'DENY',
-  'X-Content-Type-Options': 'nosniff',
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'geolocation=(), camera=(), microphone=()',
+function buildCsp(isDev: boolean): string {
+  const scriptSrc = isDev ? "script-src 'self' 'unsafe-inline';" : "script-src 'self';"
+  return `default-src 'self'; img-src 'self' https: data:; connect-src 'self' https://api.themoviedb.org https://image.tmdb.org https://api.rawg.io https://itunes.apple.com${isDev ? ' ws://localhost:*' : ''}; ${scriptSrc} style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';`
+}
+
+function securityHeaders(isDev: boolean): Record<string, string> {
+  return {
+    'Content-Security-Policy': buildCsp(isDev),
+    'X-Frame-Options': 'DENY',
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'geolocation=(), camera=(), microphone=()',
+  }
 }
 
 function securityHeadersPlugin(): Plugin {
+  let isDev = true
   return {
     name: 'security-headers',
+    config(_config, { command }) {
+      isDev = command === 'serve'
+    },
     configureServer(server) {
       server.middlewares.use((_req, res, next) => {
-        for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+        for (const [key, value] of Object.entries(securityHeaders(isDev))) {
           res.setHeader(key, value)
         }
         next()
@@ -31,7 +44,8 @@ function securityHeadersPlugin(): Plugin {
     },
     configurePreviewServer(server) {
       server.middlewares.use((_req, res, next) => {
-        for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+        // `vite preview` sirve el build de producción: usa la CSP estricta.
+        for (const [key, value] of Object.entries(securityHeaders(false))) {
           res.setHeader(key, value)
         }
         next()
