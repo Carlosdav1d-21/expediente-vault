@@ -1,90 +1,116 @@
 // ============================================================================
-// auth.ts — Registro/login local. No hay backend en este avance: el
-// "expediente" de credenciales vive en localStorage, pero nunca la contraseña
-// en claro, solo hash + salt. Esto es intencional para el alcance del curso;
-// la sección de justificación técnica documenta la ruta a un backend real.
+// auth.ts — Autenticación mediante Supabase Auth.
+//
+// El producto es "usuario + contraseña", pero Supabase Auth trabaja con email.
+// Se deriva un email sintético determinista a partir del usuario
+// (`<usuario>@users.expediente-vault.local`); el usuario nunca lo ve ni lo
+// escribe. La contraseña la hashea y verifica Supabase del lado servidor
+// (ya no hay PBKDF2 en el navegador) y el rate limiting también es de Supabase.
 // ============================================================================
 
-import type { User } from "./types";
-import { getItem, setItem, STORAGE_KEYS } from "./storage";
-import { generateSalt, hashPassword, verifyPassword, evaluateLoginAttempt, registerFailedAttempt, sanitizeInput } from "./security";
+import { supabase } from "./lib/supabase";
+import { sanitizeInput } from "./security";
 import { logAction } from "./audit";
 
-function getUsers(): Record<string, User> {
-  return getItem<Record<string, User>>(STORAGE_KEYS.USERS, {});
-}
-
-function saveUsers(users: Record<string, User>): void {
-  setItem(STORAGE_KEYS.USERS, users);
-}
+const SYNTH_EMAIL_DOMAIN = "users.expediente-vault.local";
+const USERNAME_RE = /^[a-z0-9._-]{3,30}$/;
 
 export type AuthResult =
   | { ok: true; username: string }
   | { ok: false; error: string };
 
+function emailForUsername(username: string): string {
+  return `${username}@${SYNTH_EMAIL_DOMAIN}`;
+}
+
+function usernameFromEmail(email: string | undefined): string {
+  return email ? email.split("@")[0] : "usuario";
+}
+
+function usernameOf(user: { user_metadata?: Record<string, unknown>; email?: string }): string {
+  const meta = user.user_metadata?.username;
+  return typeof meta === "string" ? meta : usernameFromEmail(user.email);
+}
+
+/** Normaliza y valida el usuario para que sea seguro como parte local de un email. */
+function normalizeUsername(raw: string): string | null {
+  const u = sanitizeInput(raw).toLowerCase();
+  return USERNAME_RE.test(u) ? u : null;
+}
+
 export async function register(usernameRaw: string, password: string): Promise<AuthResult> {
-  const username = sanitizeInput(usernameRaw);
-  if (username.length < 3) return { ok: false, error: "El usuario debe tener al menos 3 caracteres." };
-  if (password.length < 8) return { ok: false, error: "La contraseña debe tener al menos 8 caracteres." };
+  const username = normalizeUsername(usernameRaw);
+  if (!username) {
+    return {
+      ok: false,
+      error:
+        "Usuario inválido: 3-30 caracteres, solo minúsculas, números, punto, guion o guion bajo.",
+    };
+  }
+  if (password.length < 8) {
+    return { ok: false, error: "La contraseña debe tener al menos 8 caracteres." };
+  }
 
-  const users = getUsers();
-  if (users[username]) return { ok: false, error: "Ese usuario ya existe." };
+  const { data, error } = await supabase.auth.signUp({
+    email: emailForUsername(username),
+    password,
+    options: { data: { username } },
+  });
 
-  const salt = generateSalt();
-  const passwordHash = await hashPassword(password, salt);
-  users[username] = {
-    username,
-    passwordHash,
-    salt,
-    createdAt: new Date().toISOString(),
-    failedAttempts: 0,
-    lockedUntil: null,
-  };
-  saveUsers(users);
-  logAction("register", username, "Nuevo expediente de usuario creado.");
+  if (error) {
+    if (/already registered|already exists|user already/i.test(error.message)) {
+      return { ok: false, error: "Ese usuario ya existe." };
+    }
+    return { ok: false, error: error.message };
+  }
+  // Con la confirmación de email desactivada, un alta duplicada devuelve un
+  // usuario "ofuscado" sin identidades: se trata como usuario ya existente.
+  if (data.user && data.user.identities && data.user.identities.length === 0) {
+    return { ok: false, error: "Ese usuario ya existe." };
+  }
+
+  void logAction("register", "Nuevo expediente de usuario creado.");
   return { ok: true, username };
 }
 
 export async function login(usernameRaw: string, password: string): Promise<AuthResult> {
-  const username = sanitizeInput(usernameRaw);
-  const users = getUsers();
-  const user = users[username];
-
-  if (!user) {
-    // Mismo mensaje genérico que credencial inválida: no revelar si el
-    // usuario existe (mitigación de enumeración de cuentas).
-    logAction("login_failed", username, "Usuario no encontrado.");
+  const username = normalizeUsername(usernameRaw);
+  if (!username) {
     return { ok: false, error: "Usuario o contraseña incorrectos." };
   }
 
-  const gate = evaluateLoginAttempt(user);
-  if (!gate.allowed) {
-    logAction("login_locked", username, `Bloqueado hasta ${gate.lockedUntil}.`);
-    const mins = Math.ceil((new Date(gate.lockedUntil!).getTime() - Date.now()) / 60000);
-    return { ok: false, error: `Cuenta bloqueada temporalmente. Intenta de nuevo en ${mins} min.` };
-  }
+  const { error } = await supabase.auth.signInWithPassword({
+    email: emailForUsername(username),
+    password,
+  });
 
-  const valid = await verifyPassword(password, user.salt, user.passwordHash);
-  if (!valid) {
-    const { failedAttempts, lockedUntil } = registerFailedAttempt(user);
-    users[username] = { ...user, failedAttempts, lockedUntil };
-    saveUsers(users);
-    logAction("login_failed", username, `Intento fallido #${failedAttempts || 5}.`);
+  if (error) {
+    // Mensaje genérico: no revelar si el usuario existe (anti-enumeración).
     return { ok: false, error: "Usuario o contraseña incorrectos." };
   }
 
-  users[username] = { ...user, failedAttempts: 0, lockedUntil: null };
-  saveUsers(users);
-  setItem(STORAGE_KEYS.SESSION, { username, loggedInAt: new Date().toISOString() });
-  logAction("login_success", username, "Sesión iniciada.");
+  void logAction("login_success", "Sesión iniciada.");
   return { ok: true, username };
 }
 
-export function logout(username: string): void {
-  setItem(STORAGE_KEYS.SESSION, null);
-  logAction("logout", username, "Sesión cerrada.");
+export async function logout(): Promise<void> {
+  // Se registra ANTES de cerrar sesión, mientras la fila de auditoría todavía
+  // pasa el RLS (auth.uid() = user_id).
+  await logAction("logout", "Sesión cerrada.");
+  await supabase.auth.signOut();
 }
 
-export function getSession(): { username: string } | null {
-  return getItem<{ username: string } | null>(STORAGE_KEYS.SESSION, null);
+/** Usuario de la sesión actual (o null). Lee la sesión local, sin ir a la red. */
+export async function getCurrentUsername(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  const user = data.session?.user;
+  return user ? usernameOf(user) : null;
+}
+
+/** Suscribe a cambios de sesión. Devuelve la función para cancelar la suscripción. */
+export function onAuthChange(cb: (username: string | null) => void): () => void {
+  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    cb(session?.user ? usernameOf(session.user) : null);
+  });
+  return () => data.subscription.unsubscribe();
 }

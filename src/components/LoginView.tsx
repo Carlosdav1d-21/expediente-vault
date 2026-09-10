@@ -27,7 +27,17 @@ export function LoginView({ onAuthenticated }: { onAuthenticated: (username: str
       <form onSubmit={handleSubmit} className="stack">
         <label>
           Usuario
-          <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />
+          <input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            required
+          />
+          {mode === "register" && (
+            <span className="muted">Minúsculas, sin espacios. 3-30 caracteres.</span>
+          )}
         </label>
         <label>
           Contraseña
