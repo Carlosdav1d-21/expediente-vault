@@ -505,3 +505,42 @@ button:disabled {
   font-size: 11px;
   color: #6b6552;
 }
+
+/* ----- Grilla de puntuación por episodio ----- */
+.episgrid-wrap {
+  margin: 0 0 16px;
+}
+
+.episgrid-scroll {
+  overflow-x: auto;
+}
+
+.episgrid {
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.episgrid th,
+.episgrid td {
+  border: 1px solid #cfc7ae;
+  padding: 4px 6px;
+  text-align: center;
+  min-width: 36px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.episgrid thead th,
+.episgrid tbody th[scope="row"] {
+  background: #d8d0b8;
+  color: #6b6552;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.episgrid-avg th,
+.episgrid-avg td {
+  font-weight: bold;
+  border-top: 2px solid #6b6552;
+}

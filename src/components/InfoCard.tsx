@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import type { MediaDetail, MediaItem } from "../types";
+import type { MediaDetail, MediaItem, SeriesRatings } from "../types";
 import { fetchMediaDetail } from "../api/unifiedDetail";
+import { fetchSeriesRatings } from "../api/tmdbEpisodes";
+import { EpisodeGrid } from "./EpisodeGrid";
 
 /**
  * Modal de ficha ampliada (info card). Recibe el MediaItem sobre el que se
@@ -11,6 +13,10 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
   const [detail, setDetail] = useState<MediaDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Solo para series: puntuaciones por episodio/temporada (datos de TMDB).
+  const [seriesRatings, setSeriesRatings] = useState<SeriesRatings | null>(null);
+  const [ratingsLoading, setRatingsLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,6 +32,29 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [item]);
+
+  useEffect(() => {
+    if (item.category !== "serie") {
+      setSeriesRatings(null);
+      return;
+    }
+    let cancelled = false;
+    setSeriesRatings(null);
+    setRatingsLoading(true);
+    fetchSeriesRatings(Number(item.externalId))
+      .then((r) => {
+        if (!cancelled) setSeriesRatings(r);
+      })
+      .catch(() => {
+        // La ficha sigue siendo útil sin la grilla; no se muestra error aparte.
+      })
+      .finally(() => {
+        if (!cancelled) setRatingsLoading(false);
       });
     return () => {
       cancelled = true;
@@ -86,6 +115,11 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
                 ))}
               </dl>
             )}
+
+            {item.category === "serie" && ratingsLoading && !seriesRatings && (
+              <p className="muted">Cargando puntuaciones de episodios…</p>
+            )}
+            {seriesRatings && <EpisodeGrid ratings={seriesRatings} />}
 
             {detail.people.length > 0 && (
               <div className="infocard-people">
