@@ -6,7 +6,7 @@
 
 import type { MediaItem } from "../types";
 
-const TMDB_BASE = "https://api.themoviedb.org/3";
+export const TMDB_BASE = "https://api.themoviedb.org/3";
 const IMG_BASE = "https://image.tmdb.org/t/p/w342";
 
 interface TmdbResult {
@@ -24,14 +24,14 @@ interface TmdbSearchResponse {
   results: TmdbResult[];
 }
 
-function apiKey(): string {
+export function tmdbApiKey(): string {
   const key = import.meta.env.VITE_TMDB_API_KEY;
   if (!key) throw new Error("Falta VITE_TMDB_API_KEY en el archivo .env");
   return key;
 }
 
 export async function searchTmdb(query: string, kind: "movie" | "tv"): Promise<MediaItem[]> {
-  const url = `${TMDB_BASE}/search/${kind}?api_key=${apiKey()}&language=es-ES&query=${encodeURIComponent(query)}`;
+  const url = `${TMDB_BASE}/search/${kind}?api_key=${tmdbApiKey()}&language=es-ES&query=${encodeURIComponent(query)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`TMDB respondió ${res.status}`);
   const json: TmdbSearchResponse = await res.json();

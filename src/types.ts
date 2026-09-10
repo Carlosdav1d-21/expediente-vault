@@ -19,6 +19,34 @@ export interface MediaItem {
   metadata: Record<string, string | number | null>;
 }
 
+// ---------------------------------------------------------------------------
+// Ratings de episodios por temporada (feature de series).
+// Son datos AGREGADOS de TMDB (vote_average del público), de solo lectura:
+// no forman parte del ranking Elo propio del usuario.
+// ---------------------------------------------------------------------------
+
+export interface EpisodeRating {
+  seasonNumber: number;
+  episodeNumber: number;
+  name: string;
+  voteAverage: number; // escala 0-10 de TMDB
+  voteCount: number;
+  airDate: string | null;
+}
+
+export interface SeasonRatings {
+  seasonNumber: number;
+  name: string;
+  episodes: EpisodeRating[];
+  /** Promedio de voteAverage de los episodios con votos; null si ninguno tiene. */
+  average: number | null;
+}
+
+export interface SeriesRatings {
+  seriesId: number; // TMDB tv id
+  seasons: SeasonRatings[];
+}
+
 /** Entrada en el expediente (ranking personal) del usuario. */
 export interface RankingEntry {
   itemId: string; // MediaItem.id
