@@ -14,7 +14,9 @@ import { defineConfig, type Plugin } from 'vite'
 // ============================================================================
 function buildCsp(isDev: boolean): string {
   const scriptSrc = isDev ? "script-src 'self' 'unsafe-inline';" : "script-src 'self';"
-  return `default-src 'self'; img-src 'self' https: data:; connect-src 'self' https://api.themoviedb.org https://image.tmdb.org https://api.rawg.io https://itunes.apple.com${isDev ? ' ws://localhost:*' : ''}; ${scriptSrc} style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';`
+  // `media-src` habilita el clip de audio de 30s de las canciones, servido
+  // por iTunes desde audio-ssl.itunes.apple.com.
+  return `default-src 'self'; img-src 'self' https: data:; media-src 'self' https://audio-ssl.itunes.apple.com; connect-src 'self' https://api.themoviedb.org https://image.tmdb.org https://api.rawg.io https://itunes.apple.com${isDev ? ' ws://localhost:*' : ''}; ${scriptSrc} style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';`
 }
 
 function securityHeaders(isDev: boolean): Record<string, string> {

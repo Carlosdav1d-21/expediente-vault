@@ -184,6 +184,38 @@ button:disabled {
   aspect-ratio: 2 / 3;
   object-fit: contain;
   background: #cfc7ae;
+  display: block;
+}
+
+/* La imagen y el título del resultado abren la ficha de detalle. */
+.card-media-btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.card-title-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 13px;
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: pointer;
+}
+
+.card-title-btn:hover {
+  color: var(--accent);
 }
 
 .card-placeholder {
@@ -310,4 +342,166 @@ button:disabled {
 .audit-action {
   color: var(--accent-2);
   text-transform: uppercase;
+}
+
+/* ===== Info card (modal de detalle) ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.modal {
+  position: relative;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  max-width: 640px;
+  width: 100%;
+  padding: 24px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+  padding: 4px 10px;
+}
+
+.infocard-head {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.infocard-poster {
+  width: 140px;
+  flex-shrink: 0;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: #cfc7ae;
+}
+
+.infocard-headmeta h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.infocard-dates {
+  font-size: 12px;
+  color: #6b6552;
+  margin: 0 0 8px;
+}
+
+.infocard-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+}
+
+.infocard-metaline {
+  font-size: 12px;
+  color: #6b6552;
+  margin: 8px 0 0;
+}
+
+.infocard-synopsis {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.infocard-audio {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.infocard-facts {
+  margin: 0 0 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.infocard-fact {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.infocard-fact dt {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6b6552;
+}
+
+.infocard-fact dd {
+  margin: 0;
+}
+
+.infocard-people-label {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+  color: #6b6552;
+  margin: 0 0 8px;
+}
+
+.infocard-people ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.infocard-people li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.infocard-people img {
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #cfc7ae;
+}
+
+.infocard-person-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.infocard-person-name {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.infocard-person-role {
+  font-size: 11px;
+  color: #6b6552;
 }

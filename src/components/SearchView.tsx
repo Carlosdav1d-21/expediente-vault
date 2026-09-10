@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { MediaCategory, MediaItem } from "../types";
 import { searchByCategory } from "../api/unifiedSearch";
+import { InfoCard } from "./InfoCard";
 
 const CATEGORY_LABELS: Record<MediaCategory, string> = {
   pelicula: "🎬 Películas (TMDB)",
@@ -15,6 +16,7 @@ export function SearchView({ onAdd }: { onAdd: (item: MediaItem) => void }) {
   const [results, setResults] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [detailItem, setDetailItem] = useState<MediaItem | null>(null);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -58,19 +60,29 @@ export function SearchView({ onAdd }: { onAdd: (item: MediaItem) => void }) {
       <div className="results-grid">
         {results.map((item) => (
           <div key={item.id} className="card">
-            {item.imageUrl ? (
-              <img src={item.imageUrl} alt={item.title} loading="lazy" />
-            ) : (
-              <div className="card-placeholder">Sin imagen</div>
-            )}
+            <button
+              className="card-media-btn"
+              onClick={() => setDetailItem(item)}
+              title="Ver ficha"
+            >
+              {item.imageUrl ? (
+                <img src={item.imageUrl} alt={item.title} loading="lazy" />
+              ) : (
+                <div className="card-placeholder">Sin imagen</div>
+              )}
+            </button>
             <div className="card-body">
-              <p className="card-title">{item.title}</p>
+              <button className="card-title-btn" onClick={() => setDetailItem(item)}>
+                {item.title}
+              </button>
               <p className="card-meta">{item.year ?? "s/f"}</p>
               <button onClick={() => onAdd(item)}>+ Añadir al expediente</button>
             </div>
           </div>
         ))}
       </div>
+
+      {detailItem && <InfoCard item={detailItem} onClose={() => setDetailItem(null)} />}
     </div>
   );
 }
