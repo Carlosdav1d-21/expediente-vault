@@ -81,3 +81,11 @@ export function seasonAverage(episodes: EpisodeRating[]): number | null {
   const sum = rated.reduce((acc, e) => acc + e.voteAverage, 0);
   return Math.round((sum / rated.length) * 10) / 10;
 }
+
+/**
+ * Media global de la serie: promedio de TODOS los episodios con votos, de
+ * todas las temporadas. null si la serie no tiene ningún episodio calificado.
+ */
+export function seriesAverage(ratings: SeriesRatings): number | null {
+  return seasonAverage(ratings.seasons.flatMap((s) => s.episodes));
+}

@@ -3,6 +3,7 @@ import type { MediaDetail, MediaItem, SeriesRatings } from "../types";
 import { fetchMediaDetail } from "../api/unifiedDetail";
 import { fetchSeriesRatings } from "../api/tmdbEpisodes";
 import { EpisodeGrid } from "./EpisodeGrid";
+import { ScoreBox } from "./ScoreBox";
 
 /**
  * Modal de ficha ampliada (info card). Recibe el MediaItem sobre el que se
@@ -97,6 +98,10 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
                 {detail.status && <span className="infocard-badge">{detail.status}</span>}
                 {metaLine(detail) && <p className="infocard-metaline">{metaLine(detail)}</p>}
               </div>
+              {(detail.category === "pelicula" || detail.category === "serie") &&
+                detail.rating != null && (
+                  <ScoreBox value={detail.rating} label={detail.ratingLabel ?? "Nota"} />
+                )}
             </div>
 
             {detail.synopsis && <p className="infocard-synopsis">{detail.synopsis}</p>}
@@ -158,10 +163,13 @@ function formatYmd(ymd: string): string {
 }
 
 function metaLine(d: MediaDetail): string {
+  // Para película/serie la nota va en la ScoreBox; para el resto (juegos:
+  // Metacritic) se muestra aquí porque no tienen caja.
+  const hasScoreBox = d.category === "pelicula" || d.category === "serie";
   return [
     d.genres.slice(0, 3).join(" · ") || null,
     d.runtimeMinutes ? `${d.runtimeMinutes} min` : null,
-    d.rating != null ? `${d.rating}${d.ratingLabel ? ` ${d.ratingLabel}` : ""}` : null,
+    !hasScoreBox && d.rating != null ? `${d.rating}${d.ratingLabel ? ` ${d.ratingLabel}` : ""}` : null,
   ]
     .filter(Boolean)
     .join("   ·   ");
