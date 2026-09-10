@@ -20,6 +20,37 @@ export interface MediaItem {
 }
 
 // ---------------------------------------------------------------------------
+// Ficha de detalle (info card). Forma unificada del "detalle ampliado" de un
+// ítem, sin importar la fuente. Cada adaptador rellena lo que su API expone;
+// los campos que no apliquen quedan en null / vacío y la UI los omite.
+// ---------------------------------------------------------------------------
+
+export interface CreditPerson {
+  name: string;
+  role: string | null; // personaje interpretado, rol en el equipo, o null
+  imageUrl: string | null;
+}
+
+export interface MediaDetail {
+  id: string; // mismo id compuesto que MediaItem
+  category: MediaCategory;
+  title: string;
+  imageUrl: string | null; // póster / carátula en tamaño grande
+  synopsis: string | null;
+  releaseDate: string | null; // "YYYY-MM-DD"
+  endDate: string | null; // solo series ya finalizadas
+  status: string | null; // texto ya localizado ("Finalizada", "En emisión"...)
+  genres: string[];
+  runtimeMinutes: number | null;
+  rating: number | null; // nota agregada de la fuente
+  ratingLabel: string | null; // "TMDB" | "Metacritic"
+  people: CreditPerson[]; // reparto / equipo / artista
+  peopleLabel: string; // "Reparto" | "Equipo" | "Artista"
+  facts: Array<{ label: string; value: string }>; // datos sueltos por categoría, en orden
+  previewAudioUrl: string | null; // solo canciones: clip de 30s
+}
+
+// ---------------------------------------------------------------------------
 // Ratings de episodios por temporada (feature de series).
 // Son datos AGREGADOS de TMDB (vote_average del público), de solo lectura:
 // no forman parte del ranking Elo propio del usuario.
