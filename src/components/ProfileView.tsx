@@ -2,25 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { MediaCategory, MediaItem, RankingEntry } from "../types";
 import { assignTiers } from "../ranking";
 import { getCurrentProfile } from "../auth";
+import { CATEGORY_LABELS, CATEGORY_ORDER, TIER_COLORS } from "../uiConstants";
 import { InfoCard } from "./InfoCard";
 import { ProfileEditor } from "./ProfileEditor";
-
-const CATEGORY_LABELS: Record<MediaCategory, string> = {
-  pelicula: "Películas",
-  serie: "Series",
-  videojuego: "Videojuegos",
-  cancion: "Canciones",
-};
-
-const CATEGORY_ORDER: MediaCategory[] = ["pelicula", "serie", "videojuego", "cancion"];
-
-const TIER_COLORS: Record<string, string> = {
-  S: "#d4af37",
-  A: "#4caf50",
-  B: "#2196f3",
-  C: "#9e9e9e",
-  D: "#6b4a4a",
-};
 
 /**
  * Perfil del agente: resumen de actividad + todo lo que ha clasificado,

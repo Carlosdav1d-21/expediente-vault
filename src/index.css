@@ -632,6 +632,40 @@ label {
   font-size: 16px;
 }
 
+.avatar-tiny {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--poster-bg);
+  border: 1px solid var(--border);
+}
+
+.avatar-tiny.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.community-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.community-user-btn:hover {
+  color: var(--accent);
+}
+
 .avatar-editor {
   display: flex;
   align-items: center;

@@ -33,16 +33,6 @@ function usernameOf(user: { user_metadata?: Record<string, unknown>; email?: str
   return typeof meta === "string" ? meta : usernameFromEmail(user.email);
 }
 
-function displayNameOf(user: { user_metadata?: Record<string, unknown> } | undefined): string | null {
-  const meta = user?.user_metadata?.display_name;
-  return typeof meta === "string" && meta.trim() ? meta.trim() : null;
-}
-
-function avatarUrlOf(user: { user_metadata?: Record<string, unknown> } | undefined): string | null {
-  const meta = user?.user_metadata?.avatar_url;
-  return typeof meta === "string" && meta.trim() ? meta.trim() : null;
-}
-
 export async function register(usernameRaw: string, password: string): Promise<AuthResult> {
   const username = normalizeUsername(usernameRaw);
   if (!username) {
@@ -137,22 +127,27 @@ export interface Profile {
 }
 
 /**
- * Perfil (usuario, nombre para mostrar y rol) de la sesión actual, o null si
- * no hay sesión. El rol se lee SIEMPRE de la tabla `profiles`, nunca de
- * user_metadata: ese lo puede escribir el propio usuario desde el cliente
- * (updateUser), así que no es de fiar para decidir permisos.
+ * Perfil (usuario, nombre para mostrar, foto y rol) de la sesión actual, o
+ * null si no hay sesión. Nombre/foto/rol se leen SIEMPRE de la tabla
+ * `profiles` (no de user_metadata): así son visibles para otros usuarios
+ * en la Comunidad, y el rol queda protegido por sus propios permisos de
+ * columna (ver migration_002).
  */
 export async function getCurrentProfile(): Promise<Profile | null> {
   const { data } = await supabase.auth.getSession();
   const user = data.session?.user;
   if (!user) return null;
 
-  const { data: row } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const { data: row } = await supabase
+    .from("profiles")
+    .select("role, display_name, avatar_url")
+    .eq("id", user.id)
+    .single();
 
   return {
     username: usernameOf(user),
-    displayName: displayNameOf(user),
-    avatarUrl: avatarUrlOf(user),
+    displayName: row?.display_name ?? null,
+    avatarUrl: row?.avatar_url ?? null,
     role: row?.role === "admin" ? "admin" : "user",
   };
 }
@@ -163,11 +158,18 @@ export async function updateDisplayName(raw: string): Promise<AuthResult> {
     return { ok: false, error: "El nombre para mostrar debe tener al menos 2 caracteres." };
   }
 
-  const { data, error } = await supabase.auth.updateUser({ data: { display_name: displayName } });
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) return { ok: false, error: "Sesión no válida." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ display_name: displayName })
+    .eq("id", user.id);
   if (error) return { ok: false, error: error.message };
 
   void logAction("profile_updated", `Nombre para mostrar actualizado a "${displayName}".`);
-  return { ok: true, username: usernameOf(data.user) };
+  return { ok: true, username: usernameOf(user) };
 }
 
 export async function updatePassword(newPassword: string): Promise<AuthResult> {
@@ -206,10 +208,10 @@ export async function uploadAvatar(file: File): Promise<AuthResult> {
   }
 
   const { data: sessionData } = await supabase.auth.getSession();
-  const userId = sessionData.session?.user.id;
-  if (!userId) return { ok: false, error: "Sesión no válida." };
+  const user = sessionData.session?.user;
+  if (!user) return { ok: false, error: "Sesión no válida." };
 
-  const path = `${userId}/avatar.${ext}`;
+  const path = `${user.id}/avatar.${ext}`;
   const { error: uploadError } = await supabase.storage
     .from("avatars")
     .upload(path, file, { upsert: true, contentType: file.type });
@@ -220,9 +222,9 @@ export async function uploadAvatar(file: File): Promise<AuthResult> {
   const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(path);
   const avatarUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
 
-  const { data, error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
+  const { error } = await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", user.id);
   if (error) return { ok: false, error: error.message };
 
   void logAction("profile_updated", "Foto de perfil actualizada.");
-  return { ok: true, username: usernameOf(data.user) };
+  return { ok: true, username: usernameOf(user) };
 }

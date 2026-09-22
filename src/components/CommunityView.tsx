@@ -2,24 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import type { MediaCategory, MediaItem } from "../types";
 import { getCommunityRankings, type CommunityEntry } from "../community";
 import { tierForPercentile } from "../ranking";
+import { CATEGORY_LABELS, CATEGORY_ORDER, TIER_COLORS } from "../uiConstants";
 import { InfoCard } from "./InfoCard";
+import { PublicProfileModal } from "./PublicProfileModal";
 
-const CATEGORY_LABELS: Record<MediaCategory, string> = {
-  pelicula: "Películas",
-  serie: "Series",
-  videojuego: "Videojuegos",
-  cancion: "Canciones",
-};
-
-const CATEGORY_ORDER: MediaCategory[] = ["pelicula", "serie", "videojuego", "cancion"];
-
-const TIER_COLORS: Record<string, string> = {
-  S: "#d4af37",
-  A: "#4caf50",
-  B: "#2196f3",
-  C: "#9e9e9e",
-  D: "#6b4a4a",
-};
+interface ViewingUser {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+}
 
 /**
  * Ranking de TODA la comunidad, no solo el propio: lo que cada usuario
@@ -30,6 +22,7 @@ const TIER_COLORS: Record<string, string> = {
 export function CommunityView() {
   const [entries, setEntries] = useState<CommunityEntry[] | null>(null);
   const [detailItem, setDetailItem] = useState<MediaItem | null>(null);
+  const [viewingUser, setViewingUser] = useState<ViewingUser | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +50,10 @@ export function CommunityView() {
   return (
     <div className="panel">
       <h2>Rankings de la comunidad</h2>
-      <p className="muted">Lo que ha clasificado toda la gente registrada, no solo tú.</p>
+      <p className="muted">
+        Lo que ha clasificado toda la gente registrada, no solo tú. Toca un usuario para ver su
+        expediente completo.
+      </p>
 
       {entries === null && <p className="muted">Cargando…</p>}
       {entries?.length === 0 && <p className="muted">Todavía nadie ha clasificado nada.</p>}
@@ -91,7 +87,27 @@ export function CommunityView() {
                     <button className="card-title-btn" onClick={() => setDetailItem(entry.item)}>
                       {entry.item.title}
                     </button>
-                    <span className="card-meta">@{entry.username}</span>
+                    <button
+                      className="community-user-btn"
+                      onClick={() =>
+                        setViewingUser({
+                          userId: entry.userId,
+                          username: entry.username,
+                          displayName: entry.displayName,
+                          avatarUrl: entry.avatarUrl,
+                        })
+                      }
+                      title={`Ver el expediente de ${entry.username}`}
+                    >
+                      {entry.avatarUrl ? (
+                        <img src={entry.avatarUrl} alt="" className="avatar-tiny" />
+                      ) : (
+                        <span className="avatar-tiny avatar-placeholder" aria-hidden="true">
+                          👤
+                        </span>
+                      )}
+                      <span>@{entry.username}</span>
+                    </button>
                     <span className="card-meta">Elo {entry.eloScore}</span>
                   </li>
                 );
@@ -102,6 +118,16 @@ export function CommunityView() {
       })}
 
       {detailItem && <InfoCard item={detailItem} onClose={() => setDetailItem(null)} />}
+
+      {viewingUser && (
+        <PublicProfileModal
+          userId={viewingUser.userId}
+          username={viewingUser.username}
+          displayName={viewingUser.displayName}
+          avatarUrl={viewingUser.avatarUrl}
+          onClose={() => setViewingUser(null)}
+        />
+      )}
     </div>
   );
 }
