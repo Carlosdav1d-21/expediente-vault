@@ -157,9 +157,9 @@ function App() {
             "buscar",
             "duelos",
             "expediente",
-            "perfil",
-            // Auditoría y Admin son exclusivas del rol admin: un usuario
-            // normal ni siquiera ve la pestaña.
+            // Perfil ya no va aquí: se accede con el chip de arriba (foto +
+            // "Perfil"). Auditoría y Admin son exclusivas del rol admin: un
+            // usuario normal ni siquiera ve la pestaña.
             ...(role === "admin" ? (["auditoria", "admin"] as const) : []),
           ] as Tab[]
         ).map((t) => (
