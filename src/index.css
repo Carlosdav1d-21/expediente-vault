@@ -933,3 +933,21 @@ label {
   padding: 3px 7px;
   border-radius: var(--radius-sm);
 }
+
+/* ---------- Móvil ---------- */
+@media (max-width: 480px) {
+  /* La cabecera de la ficha (póster + meta + nota) no cabe en fila angosta
+     sin partir el título feo y encimar la ScoreBox: se apila. */
+  .infocard-head {
+    flex-direction: column;
+  }
+
+  .infocard-poster {
+    width: 140px;
+  }
+
+  .infocard-head .scorebox {
+    margin-left: 0;
+    align-self: flex-start;
+  }
+}
