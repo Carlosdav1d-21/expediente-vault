@@ -146,6 +146,23 @@ img {
   gap: 12px;
 }
 
+.profile-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 14px 4px 4px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.profile-chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .tabs {
   display: flex;
   gap: 2px;

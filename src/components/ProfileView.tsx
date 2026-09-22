@@ -26,7 +26,15 @@ const TIER_COLORS: Record<string, string> = {
  * Perfil del agente: resumen de actividad + todo lo que ha clasificado,
  * agrupado por categoría y ordenado por puntaje Elo. Cada ítem abre su ficha.
  */
-export function ProfileView({ username, entries }: { username: string; entries: RankingEntry[] }) {
+export function ProfileView({
+  username,
+  entries,
+  onAvatarChange,
+}: {
+  username: string;
+  entries: RankingEntry[];
+  onAvatarChange?: (url: string | null) => void;
+}) {
   const [detailItem, setDetailItem] = useState<MediaItem | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -35,9 +43,16 @@ export function ProfileView({ username, entries }: { username: string; entries: 
   useEffect(() => {
     getCurrentProfile().then((p) => {
       setDisplayName(p?.displayName ?? null);
-      setAvatarUrl(p?.avatarUrl ?? null);
+      const url = p?.avatarUrl ?? null;
+      setAvatarUrl(url);
+      onAvatarChange?.(url);
     });
   }, [username]);
+
+  function handleAvatarChange(url: string | null) {
+    setAvatarUrl(url);
+    onAvatarChange?.(url);
+  }
 
   const tiers = useMemo(() => assignTiers(entries), [entries]);
 
@@ -93,7 +108,7 @@ export function ProfileView({ username, entries }: { username: string; entries: 
       </div>
 
       {editorOpen && (
-        <ProfileEditor onDisplayNameChange={setDisplayName} onAvatarChange={setAvatarUrl} />
+        <ProfileEditor onDisplayNameChange={setDisplayName} onAvatarChange={handleAvatarChange} />
       )}
 
       {entries.length === 0 ? (

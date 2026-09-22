@@ -37,6 +37,7 @@ function App() {
   const [entries, setEntries] = useState<RankingEntry[]>([]);
   const [log, setLog] = useState<AuditLogEntry[]>([]);
   const [role, setRole] = useState<Role>("user");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [theme, setTheme] = useState<Theme | null>(() => readStoredTheme());
 
   const isDark = theme ? theme === "dark" : systemPrefersDark();
@@ -82,6 +83,7 @@ function App() {
       setEntries([]);
       setLog([]);
       setRole("user");
+      setAvatarUrl(null);
       return;
     }
     let mounted = true;
@@ -92,7 +94,10 @@ function App() {
       if (mounted) setLog(l);
     });
     getCurrentProfile().then((p) => {
-      if (mounted) setRole(p?.role ?? "user");
+      if (mounted) {
+        setRole(p?.role ?? "user");
+        setAvatarUrl(p?.avatarUrl ?? null);
+      }
     });
     return () => {
       mounted = false;
@@ -125,12 +130,16 @@ function App() {
     <div className="app-shell">
       <Header isDark={isDark} onToggleTheme={toggleTheme} />
       <div className="topbar">
-        <span>
-          Agente:{" "}
-          <button className="link-btn" onClick={() => setTab("perfil")}>
-            <strong>{username}</strong>
-          </button>
-        </span>
+        <button className="profile-chip" onClick={() => setTab("perfil")}>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="avatar-mini" />
+          ) : (
+            <span className="avatar-mini avatar-placeholder" aria-hidden="true">
+              👤
+            </span>
+          )}
+          <span>Perfil</span>
+        </button>
         <button
           className="link-btn"
           onClick={async () => {
@@ -189,7 +198,9 @@ function App() {
         />
       )}
 
-      {tab === "perfil" && <ProfileView username={username} entries={entries} />}
+      {tab === "perfil" && (
+        <ProfileView username={username} entries={entries} onAvatarChange={setAvatarUrl} />
+      )}
 
       {tab === "auditoria" && role === "admin" && <AuditView log={log} />}
 
