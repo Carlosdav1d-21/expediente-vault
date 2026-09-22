@@ -6,12 +6,14 @@ import { DuelView } from "./components/DuelView";
 import { DossierView } from "./components/DossierView";
 import { ProfileView } from "./components/ProfileView";
 import { AuditView } from "./components/AuditView";
-import { getCurrentUsername, logout, onAuthChange } from "./auth";
+import { AdminView } from "./components/AdminView";
+import { getCurrentProfile, getCurrentUsername, logout, onAuthChange } from "./auth";
+import type { Role } from "./auth";
 import { addToDossier, getDossier, recordDuel, removeFromDossier } from "./dossier";
 import { getAuditLog } from "./audit";
 import type { RankingEntry, AuditLogEntry } from "./types";
 
-type Tab = "buscar" | "duelos" | "expediente" | "perfil" | "auditoria";
+type Tab = "buscar" | "duelos" | "expediente" | "perfil" | "auditoria" | "admin";
 
 type Theme = "light" | "dark";
 
@@ -34,6 +36,7 @@ function App() {
   const [tab, setTab] = useState<Tab>("buscar");
   const [entries, setEntries] = useState<RankingEntry[]>([]);
   const [log, setLog] = useState<AuditLogEntry[]>([]);
+  const [role, setRole] = useState<Role>("user");
   const [theme, setTheme] = useState<Theme | null>(() => readStoredTheme());
 
   const isDark = theme ? theme === "dark" : systemPrefersDark();
@@ -78,6 +81,7 @@ function App() {
     if (!username) {
       setEntries([]);
       setLog([]);
+      setRole("user");
       return;
     }
     let mounted = true;
@@ -86,6 +90,9 @@ function App() {
     });
     getAuditLog().then((l) => {
       if (mounted) setLog(l);
+    });
+    getCurrentProfile().then((p) => {
+      if (mounted) setRole(p?.role ?? "user");
     });
     return () => {
       mounted = false;
@@ -136,7 +143,17 @@ function App() {
       </div>
 
       <nav className="tabs">
-        {(["buscar", "duelos", "expediente", "perfil", "auditoria"] as Tab[]).map((t) => (
+        {(
+          [
+            "buscar",
+            "duelos",
+            "expediente",
+            "perfil",
+            // Auditoría y Admin son exclusivas del rol admin: un usuario
+            // normal ni siquiera ve la pestaña.
+            ...(role === "admin" ? (["auditoria", "admin"] as const) : []),
+          ] as Tab[]
+        ).map((t) => (
           <button key={t} className={tab === t ? "tab active" : "tab"} onClick={() => setTab(t)}>
             {t}
           </button>
@@ -174,7 +191,9 @@ function App() {
 
       {tab === "perfil" && <ProfileView username={username} entries={entries} />}
 
-      {tab === "auditoria" && <AuditView log={log} />}
+      {tab === "auditoria" && role === "admin" && <AuditView log={log} />}
+
+      {tab === "admin" && role === "admin" && <AdminView />}
     </div>
   );
 }

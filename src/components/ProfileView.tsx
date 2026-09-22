@@ -125,7 +125,7 @@ export function ProfileView({ username, entries }: { username: string; entries: 
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+export function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="profile-stat">
       <span className="profile-stat-value">{value}</span>

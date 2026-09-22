@@ -122,17 +122,32 @@ export function onAuthChange(cb: (username: string | null) => void): () => void 
 // es un "nombre para mostrar" independiente y la contraseña.
 // ---------------------------------------------------------------------------
 
+export type Role = "user" | "admin";
+
 export interface Profile {
   username: string;
   displayName: string | null;
+  role: Role;
 }
 
-/** Perfil (usuario + nombre para mostrar) de la sesión actual, o null si no hay sesión. */
+/**
+ * Perfil (usuario, nombre para mostrar y rol) de la sesión actual, o null si
+ * no hay sesión. El rol se lee SIEMPRE de la tabla `profiles`, nunca de
+ * user_metadata: ese lo puede escribir el propio usuario desde el cliente
+ * (updateUser), así que no es de fiar para decidir permisos.
+ */
 export async function getCurrentProfile(): Promise<Profile | null> {
   const { data } = await supabase.auth.getSession();
   const user = data.session?.user;
   if (!user) return null;
-  return { username: usernameOf(user), displayName: displayNameOf(user) };
+
+  const { data: row } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+
+  return {
+    username: usernameOf(user),
+    displayName: displayNameOf(user),
+    role: row?.role === "admin" ? "admin" : "user",
+  };
 }
 
 export async function updateDisplayName(raw: string): Promise<AuthResult> {
