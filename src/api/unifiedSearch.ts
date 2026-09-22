@@ -16,7 +16,13 @@ export async function searchByCategory(rawQuery: string, category: MediaCategory
   if (!query) return [];
 
   const results = await fetchByCategory(query, category);
-  return filterByRelevance(results, query);
+  const relevant = filterByRelevance(results, query);
+  // Se deduplica también aquí (no solo en searchAllCategories): una sola
+  // búsqueda dentro de una categoría puede traer dos IDs distintos para lo
+  // que visualmente es el mismo título (dos entradas de RAWG, una versión
+  // single vs álbum en iTunes...), y sin esto aparecían dos botones
+  // "+ Añadir" para lo que parecía lo mismo.
+  return dedupeByTitle(relevant);
 }
 
 function fetchByCategory(query: string, category: MediaCategory): Promise<MediaItem[]> {
