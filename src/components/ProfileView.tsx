@@ -29,6 +29,7 @@ const TIER_COLORS: Record<string, string> = {
 export function ProfileView({ username, entries }: { username: string; entries: RankingEntry[] }) {
   const [detailItem, setDetailItem] = useState<MediaItem | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
 
   useEffect(() => {
     getCurrentProfile().then((p) => setDisplayName(p?.displayName ?? null));
@@ -65,9 +66,20 @@ export function ProfileView({ username, entries }: { username: string; entries: 
 
   return (
     <div className="panel">
-      <h2>Perfil · {displayName ?? username}</h2>
+      <div className="profile-header-row">
+        <h2>Perfil · {displayName ?? username}</h2>
+        <button
+          className="icon-btn"
+          onClick={() => setEditorOpen((open) => !open)}
+          aria-expanded={editorOpen}
+          aria-label={editorOpen ? "Cerrar edición de perfil" : "Editar perfil"}
+          title="Editar perfil"
+        >
+          ⚙
+        </button>
+      </div>
 
-      <ProfileEditor onDisplayNameChange={setDisplayName} />
+      {editorOpen && <ProfileEditor onDisplayNameChange={setDisplayName} />}
 
       {entries.length === 0 ? (
         <p className="muted">Aún no has clasificado nada. Ve a la pestaña Buscar para empezar.</p>

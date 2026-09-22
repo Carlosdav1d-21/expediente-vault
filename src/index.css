@@ -566,6 +566,18 @@ label {
   margin-top: 18px;
 }
 
+.profile-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.profile-header-row h2 {
+  margin: 0;
+}
+
 .profile-editor {
   display: flex;
   flex-wrap: wrap;
