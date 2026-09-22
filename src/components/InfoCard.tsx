@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import type { MediaDetail, MediaItem, SeriesRatings } from "../types";
+import type { DlcItem, MediaDetail, MediaItem, SeriesRatings } from "../types";
 import { fetchMediaDetail } from "../api/unifiedDetail";
 import { fetchSeriesRatings } from "../api/tmdbEpisodes";
+import { fetchGameDlcs } from "../api/rawg";
 import { EpisodeGrid } from "./EpisodeGrid";
 import { ScoreBox } from "./ScoreBox";
+import { DlcList } from "./DlcList";
 
 /**
  * Modal de ficha ampliada (info card). Recibe el MediaItem sobre el que se
@@ -18,6 +20,10 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
   // Solo para series: puntuaciones por episodio/temporada (datos de TMDB).
   const [seriesRatings, setSeriesRatings] = useState<SeriesRatings | null>(null);
   const [ratingsLoading, setRatingsLoading] = useState(false);
+
+  // Solo para videojuegos: DLCs y expansiones (RAWG), si tiene.
+  const [dlcs, setDlcs] = useState<DlcItem[] | null>(null);
+  const [dlcsLoading, setDlcsLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,6 +62,29 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
       })
       .finally(() => {
         if (!cancelled) setRatingsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [item]);
+
+  useEffect(() => {
+    if (item.category !== "videojuego") {
+      setDlcs(null);
+      return;
+    }
+    let cancelled = false;
+    setDlcs(null);
+    setDlcsLoading(true);
+    fetchGameDlcs(Number(item.externalId))
+      .then((d) => {
+        if (!cancelled) setDlcs(d);
+      })
+      .catch(() => {
+        // La ficha sigue siendo útil sin la lista de DLCs.
+      })
+      .finally(() => {
+        if (!cancelled) setDlcsLoading(false);
       });
     return () => {
       cancelled = true;
@@ -126,6 +155,11 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
             )}
             {seriesRatings && <EpisodeGrid ratings={seriesRatings} />}
 
+            {item.category === "videojuego" && dlcsLoading && !dlcs && (
+              <p className="muted">Buscando DLCs…</p>
+            )}
+            {dlcs && <DlcList dlcs={dlcs} />}
+
             {detail.people.length > 0 && (
               <div className="infocard-people">
                 <p className="infocard-people-label">{detail.peopleLabel}</p>
@@ -157,7 +191,7 @@ function formatDateRange(d: MediaDetail): string {
   return "Fecha desconocida";
 }
 
-function formatYmd(ymd: string): string {
+export function formatYmd(ymd: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(ymd);
   return m ? `${m[3]}/${m[2]}/${m[1]}` : ymd;
 }

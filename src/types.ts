@@ -20,6 +20,19 @@ export interface MediaItem {
 }
 
 // ---------------------------------------------------------------------------
+// DLCs / expansiones de un videojuego (RAWG). Solo se muestran en la ficha
+// si el juego tiene alguno.
+// ---------------------------------------------------------------------------
+
+export interface DlcItem {
+  id: number;
+  name: string;
+  releaseDate: string | null;
+  imageUrl: string | null;
+  rating: number | null; // escala 0-5 de RAWG; null si no tiene votos
+}
+
+// ---------------------------------------------------------------------------
 // Ficha de detalle (info card). Forma unificada del "detalle ampliado" de un
 // ítem, sin importar la fuente. Cada adaptador rellena lo que su API expone;
 // los campos que no apliquen quedan en null / vacío y la UI los omite.
@@ -106,6 +119,7 @@ export type AuditAction =
   | "item_added"
   | "item_removed"
   | "duel_resolved"
+  | "profile_updated"
   | "storage_migrated";
 
 export interface AuditLogEntry {

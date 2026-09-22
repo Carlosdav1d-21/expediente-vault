@@ -566,6 +566,35 @@ label {
   margin-top: 18px;
 }
 
+.profile-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin: 0 0 20px;
+  padding: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.profile-editor h3 {
+  flex-basis: 100%;
+  margin: 0 0 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.profile-editor form {
+  flex: 1 1 220px;
+  gap: 8px;
+}
+
+.profile-editor button[type="submit"] {
+  align-self: flex-start;
+}
+
 /* ---------- Info card (modal) ---------- */
 .modal-overlay {
   position: fixed;
@@ -822,4 +851,60 @@ label {
 .infocard-head .scorebox {
   margin-left: auto;
   align-self: flex-start;
+}
+
+/* ----- DLCs / expansiones (videojuegos) ----- */
+.dlc-wrap {
+  margin: 0 0 16px;
+}
+
+.dlc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dlc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dlc-item img,
+.dlc-img-placeholder {
+  width: 56px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--poster-bg);
+  flex-shrink: 0;
+}
+
+.dlc-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.dlc-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dlc-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.dlc-rating {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: var(--radius-sm);
 }

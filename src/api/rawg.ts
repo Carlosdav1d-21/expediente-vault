@@ -2,7 +2,7 @@
 // api/rawg.ts — Adaptador de la API de RAWG (videojuegos).
 // ============================================================================
 
-import type { CreditPerson, MediaDetail, MediaItem } from "../types";
+import type { CreditPerson, DlcItem, MediaDetail, MediaItem } from "../types";
 
 const RAWG_BASE = "https://api.rawg.io/api";
 
@@ -106,4 +106,29 @@ export async function fetchGameDetail(externalId: number): Promise<MediaDetail> 
     facts,
     previewAudioUrl: null,
   };
+}
+
+// ---------------------------------------------------------------------------
+// DLCs / expansiones del juego (endpoint "additions" de RAWG). Se piden
+// aparte de fetchGameDetail para no penalizar la carga de juegos sin DLC.
+// ---------------------------------------------------------------------------
+
+interface RawgAdditionsResponse {
+  results: RawgResult[];
+}
+
+export async function fetchGameDlcs(externalId: number): Promise<DlcItem[]> {
+  const res = await fetch(
+    `${RAWG_BASE}/games/${externalId}/additions?key=${apiKey()}&page_size=20`
+  );
+  if (!res.ok) throw new Error(`RAWG respondió ${res.status}`);
+  const json: RawgAdditionsResponse = await res.json();
+
+  return json.results.map((r) => ({
+    id: r.id,
+    name: r.name,
+    releaseDate: r.released,
+    imageUrl: r.background_image,
+    rating: r.ratings_count > 0 ? r.rating : null,
+  }));
 }
