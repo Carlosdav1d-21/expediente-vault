@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dedupeByTitle } from "./unifiedSearch";
+import { dedupeByTitle, filterByRelevance } from "./unifiedSearch";
 import type { MediaItem } from "../types";
 
 function item(overrides: Partial<MediaItem> & { id: string }): MediaItem {
@@ -48,5 +48,42 @@ describe("dedupeByTitle", () => {
       item({ id: "b", title: "Dune", year: 1984 }),
     ]);
     expect(result).toHaveLength(2);
+  });
+});
+
+describe("filterByRelevance", () => {
+  it("descarta el resto de la franquicia cuando se busca una entrega específica", () => {
+    const items = [
+      item({ id: "f3", title: "Fallout 3" }),
+      item({ id: "f4", title: "Fallout 4" }),
+      item({ id: "f76", title: "Fallout 76" }),
+      item({ id: "fnv", title: "Fallout: New Vegas" }),
+    ];
+    const result = filterByRelevance(items, "Fallout 3");
+    expect(result.map((r) => r.id)).toEqual(["f3"]);
+  });
+
+  it("conserva variantes/ediciones que sí contienen la búsqueda", () => {
+    const items = [
+      item({ id: "goty", title: "Fallout 3: Game of the Year Edition" }),
+      item({ id: "f4", title: "Fallout 4" }),
+    ];
+    const result = filterByRelevance(items, "Fallout 3");
+    expect(result.map((r) => r.id)).toEqual(["goty"]);
+  });
+
+  it("ignora acentos, mayúsculas y espacios extra al comparar", () => {
+    const items = [item({ id: "a", title: "Pokémon" })];
+    expect(filterByRelevance(items, "  POKEMON  ")).toHaveLength(1);
+  });
+
+  it("sigue encontrando títulos que anteponen un artículo", () => {
+    const items = [item({ id: "a", title: "The Batman" })];
+    expect(filterByRelevance(items, "Batman")).toHaveLength(1);
+  });
+
+  it("con búsqueda vacía no filtra nada", () => {
+    const items = [item({ id: "a", title: "Cualquiera" })];
+    expect(filterByRelevance(items, "")).toEqual(items);
   });
 });

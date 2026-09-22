@@ -15,6 +15,11 @@ export async function searchByCategory(rawQuery: string, category: MediaCategory
   const query = sanitizeInput(rawQuery);
   if (!query) return [];
 
+  const results = await fetchByCategory(query, category);
+  return filterByRelevance(results, query);
+}
+
+function fetchByCategory(query: string, category: MediaCategory): Promise<MediaItem[]> {
   switch (category) {
     case "pelicula":
       return searchTmdb(query, "movie");
@@ -25,6 +30,20 @@ export async function searchByCategory(rawQuery: string, category: MediaCategory
     case "cancion":
       return searchItunes(query);
   }
+}
+
+/**
+ * Proceso automatizado #2: filtro de relevancia.
+ * Algunas fuentes (sobre todo RAWG) hacen coincidencia muy laxa: buscar
+ * "Fallout 3" puede devolver TODA la franquicia (Fallout 4, Fallout 76,
+ * New Vegas...). Se descarta cualquier resultado cuyo título normalizado no
+ * CONTENGA la consulta normalizada como subcadena — así "Fallout 3" no trae
+ * "Fallout 4", pero "Batman" sigue encontrando "The Batman".
+ */
+export function filterByRelevance(items: MediaItem[], rawQuery: string): MediaItem[] {
+  const query = normalizeTitle(rawQuery);
+  if (!query) return items;
+  return items.filter((item) => normalizeTitle(item.title).includes(query));
 }
 
 /** Búsqueda combinada en las 4 categorías a la vez (usada en la barra de búsqueda global). */
@@ -54,7 +73,7 @@ export function dedupeByTitle(items: MediaItem[]): MediaItem[] {
   return Array.from(byKey.values());
 }
 
-function normalizeTitle(title: string): string {
+export function normalizeTitle(title: string): string {
   return title
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "") // quitar acentos
