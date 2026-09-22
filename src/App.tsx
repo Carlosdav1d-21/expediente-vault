@@ -202,7 +202,10 @@ function Header({ isDark, onToggleTheme }: { isDark: boolean; onToggleTheme: () 
   return (
     <header className="app-header">
       <div className="app-header-row">
-        <h1>EXPEDIENTE VAULT</h1>
+        <div className="app-title">
+          <AppLogo />
+          <h1>EXPEDIENTE VAULT</h1>
+        </div>
         <button
           className="icon-btn"
           onClick={onToggleTheme}
@@ -214,6 +217,17 @@ function Header({ isDark, onToggleTheme }: { isDark: boolean; onToggleTheme: () 
       </div>
       <p className="subtitle">Clasificación confidencial de películas, series, videojuegos y música</p>
     </header>
+  );
+}
+
+/** Marca del proyecto: expediente (candado) sobre el color de acento. Sigue el tema claro/oscuro. */
+function AppLogo() {
+  return (
+    <svg className="app-logo" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="32" height="32" rx="9" style={{ fill: "var(--accent)" }} />
+      <circle cx="16" cy="12.6" r="4.3" style={{ fill: "var(--on-accent)" }} />
+      <path d="M13.2 15.4h5.6l1.9 8.4h-9.4z" style={{ fill: "var(--on-accent)" }} />
+    </svg>
   );
 }
 

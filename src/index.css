@@ -100,6 +100,19 @@ img {
   gap: 12px;
 }
 
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.app-logo {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
 .app-header h1 {
   margin: 0;
   font-size: 20px;
