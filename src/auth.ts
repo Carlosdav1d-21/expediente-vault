@@ -9,11 +9,12 @@
 // ============================================================================
 
 import { supabase } from "./lib/supabase";
-import { sanitizeInput } from "./security";
 import { logAction } from "./audit";
+import { normalizeUsername } from "./usernameRules";
+
+export { normalizeUsername } from "./usernameRules";
 
 const SYNTH_EMAIL_DOMAIN = "users.expediente-vault.local";
-const USERNAME_RE = /^[a-z0-9._-]{3,30}$/;
 
 export type AuthResult =
   | { ok: true; username: string }
@@ -30,12 +31,6 @@ function usernameFromEmail(email: string | undefined): string {
 function usernameOf(user: { user_metadata?: Record<string, unknown>; email?: string }): string {
   const meta = user.user_metadata?.username;
   return typeof meta === "string" ? meta : usernameFromEmail(user.email);
-}
-
-/** Normaliza y valida el usuario para que sea seguro como parte local de un email. */
-function normalizeUsername(raw: string): string | null {
-  const u = sanitizeInput(raw).toLowerCase();
-  return USERNAME_RE.test(u) ? u : null;
 }
 
 export async function register(usernameRaw: string, password: string): Promise<AuthResult> {

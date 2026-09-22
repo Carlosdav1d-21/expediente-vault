@@ -42,7 +42,7 @@ export async function searchAllCategories(rawQuery: string): Promise<MediaItem[]
  * coinciden — esto puede ocurrir porque una búsqueda amplia golpea la misma
  * franquicia en fuentes distintas. Se conserva el de mayor popularidad.
  */
-function dedupeByTitle(items: MediaItem[]): MediaItem[] {
+export function dedupeByTitle(items: MediaItem[]): MediaItem[] {
   const byKey = new Map<string, MediaItem>();
   for (const item of items) {
     const key = `${item.category}:${normalizeTitle(item.title)}:${item.year ?? "s/f"}`;
