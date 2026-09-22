@@ -29,10 +29,14 @@ const TIER_COLORS: Record<string, string> = {
 export function ProfileView({ username, entries }: { username: string; entries: RankingEntry[] }) {
   const [detailItem, setDetailItem] = useState<MediaItem | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
 
   useEffect(() => {
-    getCurrentProfile().then((p) => setDisplayName(p?.displayName ?? null));
+    getCurrentProfile().then((p) => {
+      setDisplayName(p?.displayName ?? null);
+      setAvatarUrl(p?.avatarUrl ?? null);
+    });
   }, [username]);
 
   const tiers = useMemo(() => assignTiers(entries), [entries]);
@@ -67,7 +71,16 @@ export function ProfileView({ username, entries }: { username: string; entries: 
   return (
     <div className="panel">
       <div className="profile-header-row">
-        <h2>Perfil · {displayName ?? username}</h2>
+        <div className="profile-identity">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="avatar-mini" />
+          ) : (
+            <div className="avatar-mini avatar-placeholder" aria-hidden="true">
+              👤
+            </div>
+          )}
+          <h2>Perfil · {displayName ?? username}</h2>
+        </div>
         <button
           className="icon-btn"
           onClick={() => setEditorOpen((open) => !open)}
@@ -79,7 +92,9 @@ export function ProfileView({ username, entries }: { username: string; entries: 
         </button>
       </div>
 
-      {editorOpen && <ProfileEditor onDisplayNameChange={setDisplayName} />}
+      {editorOpen && (
+        <ProfileEditor onDisplayNameChange={setDisplayName} onAvatarChange={setAvatarUrl} />
+      )}
 
       {entries.length === 0 ? (
         <p className="muted">Aún no has clasificado nada. Ve a la pestaña Buscar para empezar.</p>

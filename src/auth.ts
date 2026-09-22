@@ -38,6 +38,11 @@ function displayNameOf(user: { user_metadata?: Record<string, unknown> } | undef
   return typeof meta === "string" && meta.trim() ? meta.trim() : null;
 }
 
+function avatarUrlOf(user: { user_metadata?: Record<string, unknown> } | undefined): string | null {
+  const meta = user?.user_metadata?.avatar_url;
+  return typeof meta === "string" && meta.trim() ? meta.trim() : null;
+}
+
 export async function register(usernameRaw: string, password: string): Promise<AuthResult> {
   const username = normalizeUsername(usernameRaw);
   if (!username) {
@@ -127,6 +132,7 @@ export type Role = "user" | "admin";
 export interface Profile {
   username: string;
   displayName: string | null;
+  avatarUrl: string | null;
   role: Role;
 }
 
@@ -146,6 +152,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   return {
     username: usernameOf(user),
     displayName: displayNameOf(user),
+    avatarUrl: avatarUrlOf(user),
     role: row?.role === "admin" ? "admin" : "user",
   };
 }
@@ -172,5 +179,50 @@ export async function updatePassword(newPassword: string): Promise<AuthResult> {
   if (error) return { ok: false, error: error.message };
 
   void logAction("profile_updated", "Contraseña actualizada.");
+  return { ok: true, username: usernameOf(data.user) };
+}
+
+// ---------------------------------------------------------------------------
+// Foto de perfil. Se sube a Supabase Storage (bucket "avatars", público en
+// lectura) bajo "<user_id>/avatar.<ext>"; las políticas del bucket impiden
+// que alguien suba o borre la foto de OTRO usuario (ver migration_003).
+// ---------------------------------------------------------------------------
+
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2 MB
+const AVATAR_EXT_BY_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+};
+
+export async function uploadAvatar(file: File): Promise<AuthResult> {
+  const ext = AVATAR_EXT_BY_TYPE[file.type];
+  if (!ext) {
+    return { ok: false, error: "Formato no soportado. Usa JPG, PNG, WEBP o GIF." };
+  }
+  if (file.size > AVATAR_MAX_BYTES) {
+    return { ok: false, error: "La imagen no puede pesar más de 2 MB." };
+  }
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) return { ok: false, error: "Sesión no válida." };
+
+  const path = `${userId}/avatar.${ext}`;
+  const { error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (uploadError) return { ok: false, error: uploadError.message };
+
+  // Cache-bust: la ruta es siempre la misma, así que sin esto el navegador
+  // (o el CDN) podría seguir mostrando la foto vieja tras reemplazarla.
+  const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(path);
+  const avatarUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
+
+  const { data, error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
+  if (error) return { ok: false, error: error.message };
+
+  void logAction("profile_updated", "Foto de perfil actualizada.");
   return { ok: true, username: usernameOf(data.user) };
 }

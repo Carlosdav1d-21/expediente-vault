@@ -591,6 +591,59 @@ label {
   margin: 0;
 }
 
+.profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.avatar-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--poster-bg);
+  border: 1px solid var(--border);
+}
+
+.avatar-mini.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.avatar-editor {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-basis: 100%;
+  margin-bottom: 6px;
+}
+
+.avatar-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--poster-bg);
+  border: 1px solid var(--border);
+}
+
+.avatar-preview.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.avatar-editor .stack {
+  gap: 6px;
+}
+
 .profile-editor {
   display: flex;
   flex-wrap: wrap;
