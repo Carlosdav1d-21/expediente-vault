@@ -5,6 +5,7 @@ import { SearchView } from "./components/SearchView";
 import { DuelView } from "./components/DuelView";
 import { DossierView } from "./components/DossierView";
 import { ProfileView } from "./components/ProfileView";
+import { CommunityView } from "./components/CommunityView";
 import { AuditView } from "./components/AuditView";
 import { AdminView } from "./components/AdminView";
 import { getCurrentProfile, getCurrentUsername, logout, onAuthChange } from "./auth";
@@ -13,7 +14,7 @@ import { addToDossier, getDossier, recordDuel, removeFromDossier } from "./dossi
 import { getAuditLog } from "./audit";
 import type { RankingEntry, AuditLogEntry } from "./types";
 
-type Tab = "buscar" | "duelos" | "expediente" | "perfil" | "auditoria" | "admin";
+type Tab = "buscar" | "duelos" | "expediente" | "comunidad" | "perfil" | "auditoria" | "admin";
 
 type Theme = "light" | "dark";
 
@@ -157,6 +158,7 @@ function App() {
             "buscar",
             "duelos",
             "expediente",
+            "comunidad",
             // Perfil ya no va aquí: se accede con el chip de arriba (foto +
             // "Perfil"). Auditoría y Admin son exclusivas del rol admin: un
             // usuario normal ni siquiera ve la pestaña.
@@ -197,6 +199,8 @@ function App() {
           }}
         />
       )}
+
+      {tab === "comunidad" && <CommunityView />}
 
       {tab === "perfil" && (
         <ProfileView username={username} entries={entries} onAvatarChange={setAvatarUrl} />

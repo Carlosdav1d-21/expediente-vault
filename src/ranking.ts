@@ -103,25 +103,33 @@ export function pickNextDuel(entries: RankingEntry[]): [RankingEntry, RankingEnt
 
 export type Tier = "S" | "A" | "B" | "C" | "D";
 
+/** Traduce un percentil (0 = el mejor, 1 = el peor) al rango correspondiente. */
+export function tierForPercentile(percentile: number): Tier {
+  if (percentile <= 0.1) return "S";
+  if (percentile <= 0.3) return "A";
+  if (percentile <= 0.6) return "B";
+  if (percentile <= 0.85) return "C";
+  return "D";
+}
+
 /**
  * DECISIÓN AUTOMÁTICA #3 — Clasificación por percentil, no por umbral fijo.
  * Un Elo de 1100 puede ser "top" en un expediente de 5 canciones y
  * mediocre en uno de 200 películas. Por eso el rango se calcula según la
  * posición relativa del ítem DENTRO de su propia categoría para ese
  * usuario, no contra un número mágico universal.
+ *
+ * Nota: la clave del mapa es itemId. Si se le pasan entradas de VARIOS
+ * usuarios que pueden compartir el mismo itemId (p. ej. la vista de
+ * comunidad), no usar este mapa — usar tierForPercentile directo sobre el
+ * índice de cada entrada, para no pisar el rango de una con el de otra.
  */
 export function assignTiers(entries: RankingEntry[]): Map<string, Tier> {
   const sorted = [...entries].sort((a, b) => b.eloScore - a.eloScore);
   const tiers = new Map<string, Tier>();
   sorted.forEach((entry, index) => {
     const percentile = sorted.length <= 1 ? 0 : index / (sorted.length - 1);
-    let tier: Tier;
-    if (percentile <= 0.1) tier = "S";
-    else if (percentile <= 0.3) tier = "A";
-    else if (percentile <= 0.6) tier = "B";
-    else if (percentile <= 0.85) tier = "C";
-    else tier = "D";
-    tiers.set(entry.itemId, tier);
+    tiers.set(entry.itemId, tierForPercentile(percentile));
   });
   return tiers;
 }
