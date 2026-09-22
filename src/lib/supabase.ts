@@ -19,7 +19,12 @@ if (!url || !anonKey) {
 
 export const supabase = createClient(url, anonKey, {
   auth: {
-    persistSession: true,
+    // Por requisito del curso: la sesión NO sobrevive a un refresh de página.
+    // Al recargar, siempre se vuelve a la pantalla de login. persistSession en
+    // false evita que el token se guarde en localStorage; sigue viva en
+    // memoria mientras la pestaña está abierta (autoRefreshToken), pero se
+    // pierde al recargar o cerrar la pestaña.
+    persistSession: false,
     autoRefreshToken: true,
   },
 });
