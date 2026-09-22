@@ -33,6 +33,11 @@ function usernameOf(user: { user_metadata?: Record<string, unknown>; email?: str
   return typeof meta === "string" ? meta : usernameFromEmail(user.email);
 }
 
+function displayNameOf(user: { user_metadata?: Record<string, unknown> } | undefined): string | null {
+  const meta = user?.user_metadata?.display_name;
+  return typeof meta === "string" && meta.trim() ? meta.trim() : null;
+}
+
 export async function register(usernameRaw: string, password: string): Promise<AuthResult> {
   const username = normalizeUsername(usernameRaw);
   if (!username) {
@@ -108,4 +113,49 @@ export function onAuthChange(cb: (username: string | null) => void): () => void 
     cb(session?.user ? usernameOf(session.user) : null);
   });
   return () => data.subscription.unsubscribe();
+}
+
+// ---------------------------------------------------------------------------
+// Edición de perfil personal.
+// El "usuario" de login (y el email sintético que lo respalda) NO se puede
+// cambiar desde aquí a propósito: es la identidad de la cuenta. Lo editable
+// es un "nombre para mostrar" independiente y la contraseña.
+// ---------------------------------------------------------------------------
+
+export interface Profile {
+  username: string;
+  displayName: string | null;
+}
+
+/** Perfil (usuario + nombre para mostrar) de la sesión actual, o null si no hay sesión. */
+export async function getCurrentProfile(): Promise<Profile | null> {
+  const { data } = await supabase.auth.getSession();
+  const user = data.session?.user;
+  if (!user) return null;
+  return { username: usernameOf(user), displayName: displayNameOf(user) };
+}
+
+export async function updateDisplayName(raw: string): Promise<AuthResult> {
+  const displayName = raw.trim().slice(0, 60);
+  if (displayName.length < 2) {
+    return { ok: false, error: "El nombre para mostrar debe tener al menos 2 caracteres." };
+  }
+
+  const { data, error } = await supabase.auth.updateUser({ data: { display_name: displayName } });
+  if (error) return { ok: false, error: error.message };
+
+  void logAction("profile_updated", `Nombre para mostrar actualizado a "${displayName}".`);
+  return { ok: true, username: usernameOf(data.user) };
+}
+
+export async function updatePassword(newPassword: string): Promise<AuthResult> {
+  if (newPassword.length < 8) {
+    return { ok: false, error: "La contraseña debe tener al menos 8 caracteres." };
+  }
+
+  const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) return { ok: false, error: error.message };
+
+  void logAction("profile_updated", "Contraseña actualizada.");
+  return { ok: true, username: usernameOf(data.user) };
 }

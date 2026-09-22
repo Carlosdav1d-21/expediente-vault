@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { MediaCategory, MediaItem, RankingEntry } from "../types";
 import { assignTiers } from "../ranking";
+import { getCurrentProfile } from "../auth";
 import { InfoCard } from "./InfoCard";
+import { ProfileEditor } from "./ProfileEditor";
 
 const CATEGORY_LABELS: Record<MediaCategory, string> = {
   pelicula: "Películas",
@@ -26,6 +28,11 @@ const TIER_COLORS: Record<string, string> = {
  */
 export function ProfileView({ username, entries }: { username: string; entries: RankingEntry[] }) {
   const [detailItem, setDetailItem] = useState<MediaItem | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    getCurrentProfile().then((p) => setDisplayName(p?.displayName ?? null));
+  }, [username]);
 
   const tiers = useMemo(() => assignTiers(entries), [entries]);
 
@@ -58,7 +65,9 @@ export function ProfileView({ username, entries }: { username: string; entries: 
 
   return (
     <div className="panel">
-      <h2>Perfil · {username}</h2>
+      <h2>Perfil · {displayName ?? username}</h2>
+
+      <ProfileEditor onDisplayNameChange={setDisplayName} />
 
       {entries.length === 0 ? (
         <p className="muted">Aún no has clasificado nada. Ve a la pestaña Buscar para empezar.</p>
