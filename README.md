@@ -2,7 +2,7 @@
 
 **Proyecto final — Ciberseguridad, Ingeniería en Desarrollo de Software**
 
-Expediente Vault es una aplicación web para llevar un ranking personal de las películas, series, videojuegos y canciones que has visto, jugado o escuchado — todo en un solo lugar, en vez de tener esa información repartida en varias apps distintas.
+Expediente Vault es una aplicación web para llevar un ranking personal de las películas, series, videojuegos, canciones y álbumes que has visto, jugado o escuchado — todo en un solo lugar, en vez de tener esa información repartida en varias apps distintas.
 
 **🔗 Demo en vivo:** https://expediente-vault.vercel.app
 
@@ -12,15 +12,16 @@ Expediente Vault es una aplicación web para llevar un ranking personal de las p
 
 Hoy en día usamos apps distintas para cada tipo de contenido: una para películas, otra para videojuegos, otra para música, y cada una califica diferente (estrellas, números del 1 al 10, "me gusta"). Esto hace difícil tener una idea clara de qué tanto te gustó algo comparado con otra cosa.
 
-Expediente Vault junta las 4 categorías en un solo lugar y, en vez de pedirte que le pongas una calificación de memoria, te muestra **dos cosas a la vez y te pregunta cuál prefieres**. A partir de esas comparaciones, la app calcula por sí sola un ranking ordenado — el mismo principio (Elo) que se usa para rankear jugadores de ajedrez.
+Expediente Vault junta las 5 categorías en un solo lugar y, en vez de pedirte que le pongas una calificación de memoria, te muestra **dos cosas a la vez y te pregunta cuál prefieres**. A partir de esas comparaciones, la app calcula por sí sola un ranking ordenado — el mismo principio (Elo) que se usa para rankear jugadores de ajedrez.
 
 ---
 
 ## ¿Qué puede hacer la aplicación?
 
 - **Crear una cuenta e iniciar sesión** (usuario + contraseña; la autenticación real la maneja Supabase Auth). La sesión **no persiste** al recargar la página — por diseño, vuelve siempre al login.
-- **Buscar** películas y series, videojuegos, o canciones, conectándose a bases de datos reales (TMDB, RAWG e iTunes), con miniatura de cada resultado y filtrado por relevancia exacta (buscar "Fallout 3" no trae el resto de la franquicia).
-- **Ver la ficha ampliada de cualquier ítem**: sinopsis, fecha de estreno/lanzamiento, estado ("Finalizada", "En emisión"...), géneros, reparto o equipo, nota agregada, y un preview de audio de 30s para canciones.
+- **Buscar** películas y series, videojuegos, canciones o álbumes, conectándose a bases de datos reales (TMDB, RAWG e iTunes), con miniatura de cada resultado y filtrado por relevancia exacta (buscar "Fallout 3" no trae el resto de la franquicia). Las canciones también se encuentran por el nombre de su álbum.
+- **Filtro de contenido para adultos** en las búsquedas: usa las marcas de cada API (TMDB, etiquetas y clasificación ESRB de RAWG) más una revisión de títulos.
+- **Ver la ficha ampliada de cualquier ítem**: sinopsis, fecha de estreno/lanzamiento, estado ("Finalizada", "En emisión"...), géneros, reparto o equipo, nota agregada, un preview de audio de 30s para canciones y la lista de canciones de cada álbum.
 - Para series, **ver la puntuación de cada episodio por temporada** (datos de TMDB) en una grilla tipo mapa de calor, más la media global del show.
 - Para videojuegos, **ver sus DLCs y expansiones** (RAWG), si tiene.
 - **Agregar ítems a tu expediente personal** y **compararlos de dos en dos** para que la app calcule el ranking automáticamente.
@@ -89,8 +90,8 @@ npm run test
 
 **Terminado:**
 - Registro y login vía Supabase Auth (sesión no persistente por diseño)
-- Búsqueda unificada en TMDB / RAWG / iTunes, con filtro de relevancia y deduplicación
-- Ficha de detalle (info card) por ítem: sinopsis, reparto, grilla de episodios en series, DLCs en videojuegos, preview de audio en canciones
+- Búsqueda unificada en TMDB / RAWG / iTunes (5 categorías, incluidos álbumes), con filtro de relevancia, deduplicación y filtro de contenido para adultos
+- Ficha de detalle (info card) por ítem: sinopsis, reparto, grilla de episodios en series, DLCs en videojuegos, preview de audio en canciones, lista de canciones en álbumes
 - Motor de ranking Elo propio (duelos, K-factor dinámico, tiers por percentil)
 - Expediente y perfil persistidos en Postgres (Supabase), con RLS
 - Edición de perfil: nombre para mostrar, foto (Supabase Storage), contraseña

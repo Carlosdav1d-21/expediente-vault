@@ -171,5 +171,6 @@ export async function fetchTitleDetail(
     peopleLabel: "Reparto",
     facts,
     previewAudioUrl: null,
+    tracks: [],
   };
 }

@@ -127,6 +127,7 @@ export async function fetchGameDetail(externalId: number): Promise<MediaDetail> 
     peopleLabel: "Equipo",
     facts,
     previewAudioUrl: null,
+    tracks: [],
   };
 }
 

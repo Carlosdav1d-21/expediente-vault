@@ -10,9 +10,10 @@ export const CATEGORY_LABELS: Record<MediaCategory, string> = {
   serie: "Series",
   videojuego: "Videojuegos",
   cancion: "Canciones",
+  album: "Álbumes",
 };
 
-export const CATEGORY_ORDER: MediaCategory[] = ["pelicula", "serie", "videojuego", "cancion"];
+export const CATEGORY_ORDER: MediaCategory[] = ["pelicula", "serie", "videojuego", "cancion", "album"];
 
 export const TIER_COLORS: Record<string, string> = {
   S: "#d4af37",

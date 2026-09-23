@@ -7,7 +7,7 @@
 import type { MediaDetail, MediaItem } from "../types";
 import { fetchTitleDetail } from "./tmdb";
 import { fetchGameDetail } from "./rawg";
-import { fetchSongDetail } from "./itunes";
+import { fetchAlbumDetail, fetchSongDetail } from "./itunes";
 
 export async function fetchMediaDetail(item: MediaItem): Promise<MediaDetail> {
   const externalId = Number(item.externalId);
@@ -24,5 +24,7 @@ export async function fetchMediaDetail(item: MediaItem): Promise<MediaDetail> {
       return fetchGameDetail(externalId);
     case "cancion":
       return fetchSongDetail(externalId);
+    case "album":
+      return fetchAlbumDetail(externalId);
   }
 }

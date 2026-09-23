@@ -86,6 +86,14 @@ describe("filterByRelevance", () => {
     const items = [item({ id: "a", title: "Cualquiera" })];
     expect(filterByRelevance(items, "")).toEqual(items);
   });
+
+  it("encuentra canciones por el nombre de su álbum", () => {
+    const items = [
+      item({ id: "a", title: "SAOKO — ROSALÍA", category: "cancion", metadata: { album: "MOTOMAMI" } }),
+      item({ id: "b", title: "Otra — Otro", category: "cancion", metadata: { album: "Otro disco" } }),
+    ];
+    expect(filterByRelevance(items, "motomami").map((r) => r.id)).toEqual(["a"]);
+  });
 });
 
 describe("filterAdultTitles", () => {
@@ -108,8 +116,11 @@ describe("filterAdultTitles", () => {
     expect(filterAdultTitles(items).map((r) => r.id)).toEqual(["a", "b"]);
   });
 
-  it("no filtra canciones por título", () => {
-    const song = item({ id: "a", title: "HENTAI — ROSALÍA", category: "cancion" });
-    expect(filterAdultTitles([song])).toEqual([song]);
+  it("no filtra música por título", () => {
+    const music = [
+      item({ id: "a", title: "HENTAI — ROSALÍA", category: "cancion" }),
+      item({ id: "b", title: "MOTOMAMI — ROSALÍA", category: "album" }),
+    ];
+    expect(filterAdultTitles(music)).toEqual(music);
   });
 });

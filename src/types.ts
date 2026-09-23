@@ -2,7 +2,7 @@
 // types.ts — Contratos de datos del sistema
 // ============================================================================
 
-export type MediaCategory = "pelicula" | "serie" | "videojuego" | "cancion";
+export type MediaCategory = "pelicula" | "serie" | "videojuego" | "cancion" | "album";
 
 export type ApiSource = "tmdb" | "rawg" | "itunes";
 
@@ -44,6 +44,11 @@ export interface CreditPerson {
   imageUrl: string | null;
 }
 
+export interface AlbumTrack {
+  name: string;
+  duration: string | null; // "m:ss"
+}
+
 export interface MediaDetail {
   id: string; // mismo id compuesto que MediaItem
   category: MediaCategory;
@@ -61,6 +66,7 @@ export interface MediaDetail {
   peopleLabel: string; // "Reparto" | "Equipo" | "Artista"
   facts: Array<{ label: string; value: string }>; // datos sueltos por categoría, en orden
   previewAudioUrl: string | null; // solo canciones: clip de 30s
+  tracks: AlbumTrack[]; // solo álbumes: lista de canciones en orden
 }
 
 // ---------------------------------------------------------------------------

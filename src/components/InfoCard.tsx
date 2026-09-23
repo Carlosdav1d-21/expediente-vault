@@ -160,6 +160,21 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
             )}
             {dlcs && <DlcList dlcs={dlcs} />}
 
+            {detail.tracks.length > 0 && (
+              <div className="infocard-tracks">
+                <p className="infocard-people-label">Canciones ({detail.tracks.length})</p>
+                <ol>
+                  {detail.tracks.map((t, i) => (
+                    <li key={i}>
+                      <span className="track-num">{i + 1}</span>
+                      <span className="track-name">{t.name}</span>
+                      {t.duration && <span className="track-duration">{t.duration}</span>}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
             {detail.people.length > 0 && (
               <div className="infocard-people">
                 <p className="infocard-people-label">{detail.peopleLabel}</p>

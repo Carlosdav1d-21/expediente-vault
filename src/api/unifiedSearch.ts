@@ -8,7 +8,7 @@
 import type { MediaCategory, MediaItem } from "../types";
 import { searchTmdb } from "./tmdb";
 import { searchRawg } from "./rawg";
-import { searchItunes } from "./itunes";
+import { searchItunes, searchItunesAlbums } from "./itunes";
 import { sanitizeInput } from "../security";
 
 export async function searchByCategory(rawQuery: string, category: MediaCategory): Promise<MediaItem[]> {
@@ -35,6 +35,8 @@ function fetchByCategory(query: string, category: MediaCategory): Promise<MediaI
       return searchRawg(query);
     case "cancion":
       return searchItunes(query);
+    case "album":
+      return searchItunesAlbums(query);
   }
 }
 
@@ -49,23 +51,28 @@ function fetchByCategory(query: string, category: MediaCategory): Promise<MediaI
 export function filterByRelevance(items: MediaItem[], rawQuery: string): MediaItem[] {
   const query = normalizeTitle(rawQuery);
   if (!query) return items;
-  return items.filter((item) => normalizeTitle(item.title).includes(query));
+  // En canciones también cuenta el álbum: buscar "Motomami" debe traer sus canciones.
+  return items.filter((item) =>
+    [item.title, item.metadata.album].some((t) => typeof t === "string" && normalizeTitle(t).includes(query))
+  );
 }
 
 const ADULT_TITLE = /\b(hentai|porn\w*|nsfw)\b/;
 
+const MUSIC: ReadonlySet<MediaCategory> = new Set(["cancion", "album"]);
+
 /**
  * Proceso automatizado #3: segunda red contra contenido para adultos, por si
- * el proveedor no lo marcó. Las canciones quedan fuera: ahí esas palabras no
+ * el proveedor no lo marcó. La música queda fuera: ahí esas palabras no
  * indican contenido explícito (p. ej. "HENTAI" de Rosalía).
  */
 export function filterAdultTitles(items: MediaItem[]): MediaItem[] {
-  return items.filter((item) => item.category === "cancion" || !ADULT_TITLE.test(normalizeTitle(item.title)));
+  return items.filter((item) => MUSIC.has(item.category) || !ADULT_TITLE.test(normalizeTitle(item.title)));
 }
 
 /** Búsqueda combinada en las 4 categorías a la vez (usada en la barra de búsqueda global). */
 export async function searchAllCategories(rawQuery: string): Promise<MediaItem[]> {
-  const categories: MediaCategory[] = ["pelicula", "serie", "videojuego", "cancion"];
+  const categories: MediaCategory[] = ["pelicula", "serie", "videojuego", "cancion", "album"];
   const settled = await Promise.allSettled(categories.map((c) => searchByCategory(rawQuery, c)));
   const combined = settled.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
   return dedupeByTitle(combined);

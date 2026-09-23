@@ -9,6 +9,7 @@ const CATEGORY_LABELS: Record<MediaCategory, string> = {
   serie: "📺 Series (TMDB)",
   videojuego: "🎮 Videojuegos (RAWG)",
   cancion: "🎵 Canciones (iTunes)",
+  album: "💿 Álbumes (iTunes)",
 };
 
 export function SearchView({
