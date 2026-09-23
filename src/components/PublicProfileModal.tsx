@@ -4,6 +4,7 @@ import { assignTiers } from "../ranking";
 import { getUserRankings } from "../community";
 import { CATEGORY_LABELS, CATEGORY_ORDER, TIER_COLORS, categoryGroup } from "../uiConstants";
 import { Stat } from "./ProfileView";
+import { formatReviewDate } from "./ItemReviews";
 
 /**
  * Ficha pública (solo lectura) del expediente de OTRO usuario: se abre al
@@ -68,6 +69,14 @@ export function PublicProfileModal({
 
   const groups = CATEGORY_ORDER.filter((c) => byCategory.has(c));
 
+  const reviewed = useMemo(
+    () =>
+      (entries ?? [])
+        .filter((e) => e.review)
+        .sort((a, b) => (b.reviewedAt ?? "").localeCompare(a.reviewedAt ?? "")),
+    [entries]
+  );
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
@@ -94,7 +103,34 @@ export function PublicProfileModal({
             <div className="profile-stats">
               <Stat label="Ítems" value={entries.length} />
               <Stat label="Duelos" value={totalDuels} />
+              <Stat label="Reseñas" value={reviewed.length} />
             </div>
+
+            {reviewed.length > 0 && (
+              <div className="profile-group">
+                <h3>Reseñas ({reviewed.length})</h3>
+                <ul className="profile-reviews">
+                  {reviewed.map((entry) => (
+                    <li key={entry.itemId} className="profile-review">
+                      {entry.item.imageUrl ? (
+                        <img src={entry.item.imageUrl} alt="" />
+                      ) : (
+                        <span className="dossier-img-placeholder" aria-hidden="true" />
+                      )}
+                      <div>
+                        <div className="review-head">
+                          <span className="review-author">{entry.item.title}</span>
+                          {entry.reviewedAt && (
+                            <span className="review-meta">· {formatReviewDate(entry.reviewedAt)}</span>
+                          )}
+                        </div>
+                        <p className="review-text">{entry.review}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {groups.map((c) => (
               <div key={c} className="profile-group">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getItemReviews, type ItemReview } from "../community";
 
-function formatReviewDate(iso: string): string {
+export function formatReviewDate(iso: string): string {
   return new Date(iso).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" });
 }
 

@@ -107,6 +107,7 @@ export interface RankingEntry {
   addedAt: string; // ISO timestamp
   updatedAt: string;
   review?: string | null; // reseña escrita opcional
+  reviewedAt?: string | null; // la pone el servidor al guardar la reseña
 }
 
 export interface User {

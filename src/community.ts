@@ -22,6 +22,8 @@ interface RankingRow {
   comparisons: number;
   added_at: string;
   updated_at: string;
+  review?: string | null;
+  reviewed_at?: string | null;
 }
 
 interface ProfileRow {
@@ -39,6 +41,8 @@ function rowToEntry(r: Omit<RankingRow, "user_id">): RankingEntry {
     comparisons: r.comparisons,
     addedAt: r.added_at,
     updatedAt: r.updated_at,
+    review: r.review ?? null,
+    reviewedAt: r.reviewed_at ?? null,
   };
 }
 
@@ -114,7 +118,7 @@ export async function getItemReviews(itemId: string): Promise<ItemReview[]> {
 export async function getUserRankings(userId: string): Promise<RankingEntry[]> {
   const { data, error } = await supabase
     .from("rankings")
-    .select("item_id, item, elo_score, comparisons, added_at, updated_at")
+    .select("item_id, item, elo_score, comparisons, added_at, updated_at, review, reviewed_at")
     .eq("user_id", userId);
 
   if (error || !data) return [];
