@@ -1,8 +1,8 @@
 // ============================================================================
 // dossier.ts — "Expediente" del usuario (su ranking personal), persistido en
-// la tabla `rankings` de Supabase. El RLS garantiza que cada usuario solo
-// lee y escribe SUS filas, así que no hace falta pasar el username: se toma
-// de la sesión y la base de datos hace cumplir la propiedad.
+// la tabla `rankings` de Supabase. El RLS solo restringe ESCRITURAS al dueño;
+// la LECTURA está abierta a todos (Comunidad), así que toda consulta del
+// expediente propio debe filtrar por user_id explícitamente.
 // ============================================================================
 
 import type { MediaItem, RankingEntry } from "./types";
@@ -48,9 +48,13 @@ async function currentUserId(): Promise<string | null> {
 }
 
 export async function getDossier(): Promise<RankingEntry[]> {
+  const userId = await currentUserId();
+  if (!userId) return [];
+
   const { data, error } = await supabase
     .from("rankings")
-    .select("item_id, item, elo_score, comparisons, added_at, updated_at");
+    .select("item_id, item, elo_score, comparisons, added_at, updated_at")
+    .eq("user_id", userId);
   if (error || !data) return [];
   return (data as RankingRow[]).map(rowToEntry);
 }

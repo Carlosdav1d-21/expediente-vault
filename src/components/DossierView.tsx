@@ -1,14 +1,7 @@
 import { useMemo } from "react";
 import type { RankingEntry } from "../types";
 import { assignTiers } from "../ranking";
-
-const TIER_COLORS: Record<string, string> = {
-  S: "#d4af37",
-  A: "#4caf50",
-  B: "#2196f3",
-  C: "#9e9e9e",
-  D: "#6b4a4a",
-};
+import { TIER_COLORS } from "../uiConstants";
 
 export function DossierView({ entries, onRemove }: { entries: RankingEntry[]; onRemove: (id: string) => void }) {
   const tiers = useMemo(() => assignTiers(entries), [entries]);
