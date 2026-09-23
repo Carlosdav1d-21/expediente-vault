@@ -16,7 +16,7 @@ export async function searchByCategory(rawQuery: string, category: MediaCategory
   if (!query) return [];
 
   const results = await fetchByCategory(query, category);
-  const relevant = filterByRelevance(results, query);
+  const relevant = filterByRelevance(filterAdultTitles(results), query);
   // Se deduplica también aquí (no solo en searchAllCategories): una sola
   // búsqueda dentro de una categoría puede traer dos IDs distintos para lo
   // que visualmente es el mismo título (dos entradas de RAWG, una versión
@@ -50,6 +50,17 @@ export function filterByRelevance(items: MediaItem[], rawQuery: string): MediaIt
   const query = normalizeTitle(rawQuery);
   if (!query) return items;
   return items.filter((item) => normalizeTitle(item.title).includes(query));
+}
+
+const ADULT_TITLE = /\b(hentai|porn\w*|nsfw)\b/;
+
+/**
+ * Proceso automatizado #3: segunda red contra contenido para adultos, por si
+ * el proveedor no lo marcó. Las canciones quedan fuera: ahí esas palabras no
+ * indican contenido explícito (p. ej. "HENTAI" de Rosalía).
+ */
+export function filterAdultTitles(items: MediaItem[]): MediaItem[] {
+  return items.filter((item) => item.category === "cancion" || !ADULT_TITLE.test(normalizeTitle(item.title)));
 }
 
 /** Búsqueda combinada en las 4 categorías a la vez (usada en la barra de búsqueda global). */

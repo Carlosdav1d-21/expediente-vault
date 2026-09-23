@@ -13,10 +13,32 @@ interface RawgResult {
   background_image: string | null;
   rating: number; // 0-5
   ratings_count: number;
+  added?: number; // cuántos usuarios de RAWG lo tienen en su biblioteca
+  tags?: Array<{ slug: string }>;
+  esrb_rating?: { slug: string } | null;
 }
 
 interface RawgSearchResponse {
   results: RawgResult[];
+}
+
+const ADULT_TAGS = new Set(["nsfw", "hentai", "khentai", "adult", "porn", "pornographic", "eroge", "erotic"]);
+const NICHE_LIBRARY_SIZE = 1000;
+
+/**
+ * RAWG no tiene parámetro para excluir contenido para adultos. "nudity" + "sexual-content" también
+ * los llevan The Witcher 3 o Cyberpunk 2077, así que solo cuentan en juegos sin ESRB y de nicho.
+ */
+export function isAdultGame(g: Pick<RawgResult, "tags" | "esrb_rating" | "added">): boolean {
+  if (g.esrb_rating?.slug === "adults-only") return true;
+  const tags = new Set((g.tags ?? []).map((t) => t.slug));
+  if ([...tags].some((t) => ADULT_TAGS.has(t))) return true;
+  return (
+    tags.has("nudity") &&
+    tags.has("sexual-content") &&
+    !g.esrb_rating &&
+    (g.added ?? 0) < NICHE_LIBRARY_SIZE
+  );
 }
 
 function apiKey(): string {
@@ -31,7 +53,7 @@ export async function searchRawg(query: string): Promise<MediaItem[]> {
   if (!res.ok) throw new Error(`RAWG respondió ${res.status}`);
   const json: RawgSearchResponse = await res.json();
 
-  return json.results.map((r) => ({
+  return json.results.filter((r) => !isAdultGame(r)).map((r) => ({
     id: `rawg-${r.id}`,
     source: "rawg",
     externalId: r.id,
@@ -124,7 +146,7 @@ export async function fetchGameDlcs(externalId: number): Promise<DlcItem[]> {
   if (!res.ok) throw new Error(`RAWG respondió ${res.status}`);
   const json: RawgAdditionsResponse = await res.json();
 
-  return json.results.map((r) => ({
+  return json.results.filter((r) => !isAdultGame(r)).map((r) => ({
     id: r.id,
     name: r.name,
     releaseDate: r.released,

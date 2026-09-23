@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dedupeByTitle, filterByRelevance } from "./unifiedSearch";
+import { dedupeByTitle, filterAdultTitles, filterByRelevance } from "./unifiedSearch";
 import type { MediaItem } from "../types";
 
 function item(overrides: Partial<MediaItem> & { id: string }): MediaItem {
@@ -85,5 +85,31 @@ describe("filterByRelevance", () => {
   it("con búsqueda vacía no filtra nada", () => {
     const items = [item({ id: "a", title: "Cualquiera" })];
     expect(filterByRelevance(items, "")).toEqual(items);
+  });
+});
+
+describe("filterAdultTitles", () => {
+  it("descarta películas, series y juegos con palabras explícitas en el título", () => {
+    const items = [
+      item({ id: "a", title: "Porno S.A.", category: "pelicula" }),
+      item({ id: "b", title: "Hentai Senpai: Pirates!", category: "videojuego" }),
+      item({ id: "c", title: "Pornográfico", category: "serie" }),
+      item({ id: "d", title: "NSFW Club", category: "videojuego" }),
+    ];
+    expect(filterAdultTitles(items)).toHaveLength(0);
+  });
+
+  it("no toca títulos legítimos que solo se parecen", () => {
+    const items = [
+      item({ id: "a", title: "Sex Education", category: "serie" }),
+      item({ id: "b", title: "xXx", category: "pelicula" }),
+      item({ id: "c", title: "Pornography Wars", category: "pelicula" }),
+    ];
+    expect(filterAdultTitles(items).map((r) => r.id)).toEqual(["a", "b"]);
+  });
+
+  it("no filtra canciones por título", () => {
+    const song = item({ id: "a", title: "HENTAI — ROSALÍA", category: "cancion" });
+    expect(filterAdultTitles([song])).toEqual([song]);
   });
 });

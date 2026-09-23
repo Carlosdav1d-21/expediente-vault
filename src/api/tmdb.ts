@@ -26,6 +26,7 @@ interface TmdbResult {
   poster_path: string | null;
   popularity: number;
   media_type?: "movie" | "tv";
+  adult?: boolean;
 }
 
 interface TmdbSearchResponse {
@@ -39,12 +40,12 @@ export function tmdbApiKey(): string {
 }
 
 export async function searchTmdb(query: string, kind: "movie" | "tv"): Promise<MediaItem[]> {
-  const url = `${TMDB_BASE}/search/${kind}?api_key=${tmdbApiKey()}&language=es-ES&query=${encodeURIComponent(query)}`;
+  const url = `${TMDB_BASE}/search/${kind}?api_key=${tmdbApiKey()}&language=es-ES&include_adult=false&query=${encodeURIComponent(query)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`TMDB respondió ${res.status}`);
   const json: TmdbSearchResponse = await res.json();
 
-  return json.results.map((r) => {
+  return json.results.filter((r) => !r.adult).map((r) => {
     const date = r.release_date ?? r.first_air_date ?? "";
     return {
       id: `tmdb-${kind}-${r.id}`,
