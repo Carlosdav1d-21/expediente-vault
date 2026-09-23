@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { MediaCategory, MediaItem } from "../types";
 import { searchByCategory } from "../api/unifiedSearch";
 import { InfoCard } from "./InfoCard";
+import { ToastRegion, useToast } from "./Toast";
 
 const CATEGORY_LABELS: Record<MediaCategory, string> = {
   pelicula: "🎬 Películas (TMDB)",
@@ -9,13 +10,6 @@ const CATEGORY_LABELS: Record<MediaCategory, string> = {
   videojuego: "🎮 Videojuegos (RAWG)",
   cancion: "🎵 Canciones (iTunes)",
 };
-
-const TOAST_MS = 3000;
-
-interface Toast {
-  ok: boolean;
-  text: string;
-}
 
 export function SearchView({
   addedIds,
@@ -31,13 +25,7 @@ export function SearchView({
   const [error, setError] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<MediaItem | null>(null);
   const [adding, setAdding] = useState<ReadonlySet<string>>(new Set());
-  const [toast, setToast] = useState<Toast | null>(null);
-
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), TOAST_MS);
-    return () => clearTimeout(t);
-  }, [toast]);
+  const [toast, setToast] = useToast();
 
   async function handleAdd(item: MediaItem) {
     setAdding((s) => new Set(s).add(item.id));
@@ -133,17 +121,7 @@ export function SearchView({
 
       {detailItem && <InfoCard item={detailItem} onClose={() => setDetailItem(null)} />}
 
-      {/* La región existe siempre para que los lectores de pantalla anuncien el aviso al aparecer. */}
-      <div className="toast-region" role="status" aria-live="polite">
-        {toast && (
-          <div className={toast.ok ? "toast" : "toast toast-error"}>
-            <span className="toast-icon" aria-hidden="true">
-              {toast.ok ? "✓" : "!"}
-            </span>
-            {toast.text}
-          </div>
-        )}
-      </div>
+      <ToastRegion toast={toast} />
     </div>
   );
 }

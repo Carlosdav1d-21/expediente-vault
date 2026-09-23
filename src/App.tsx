@@ -198,8 +198,10 @@ function App() {
         <DossierView
           entries={entries}
           onRemove={async (id) => {
-            setEntries(await removeFromDossier(id));
+            const updated = await removeFromDossier(id);
+            setEntries(updated);
             void refreshLog();
+            return !updated.some((e) => e.itemId === id);
           }}
         />
       )}
