@@ -25,7 +25,7 @@ export async function searchByCategory(rawQuery: string, category: MediaCategory
   return dedupeByTitle(relevant);
 }
 
-function fetchByCategory(query: string, category: MediaCategory): Promise<MediaItem[]> {
+async function fetchByCategory(query: string, category: MediaCategory): Promise<MediaItem[]> {
   switch (category) {
     case "pelicula":
       return searchTmdb(query, "movie");
@@ -33,8 +33,14 @@ function fetchByCategory(query: string, category: MediaCategory): Promise<MediaI
       return searchTmdb(query, "tv");
     case "videojuego":
       return searchRawg(query);
-    case "cancion":
-      return searchItunes(query);
+    case "cancion": {
+      // Música = álbumes + canciones. Si fallan los álbumes, al menos salen las canciones.
+      const [albums, songs] = await Promise.all([
+        searchItunesAlbums(query).catch(() => []),
+        searchItunes(query),
+      ]);
+      return [...albums, ...songs];
+    }
     case "album":
       return searchItunesAlbums(query);
   }
@@ -72,7 +78,7 @@ export function filterAdultTitles(items: MediaItem[]): MediaItem[] {
 
 /** Búsqueda combinada en las 4 categorías a la vez (usada en la barra de búsqueda global). */
 export async function searchAllCategories(rawQuery: string): Promise<MediaItem[]> {
-  const categories: MediaCategory[] = ["pelicula", "serie", "videojuego", "cancion", "album"];
+  const categories: MediaCategory[] = ["pelicula", "serie", "videojuego", "cancion"];
   const settled = await Promise.allSettled(categories.map((c) => searchByCategory(rawQuery, c)));
   const combined = settled.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
   return dedupeByTitle(combined);

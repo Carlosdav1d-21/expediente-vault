@@ -4,13 +4,15 @@ import { searchByCategory } from "../api/unifiedSearch";
 import { InfoCard } from "./InfoCard";
 import { ToastRegion, useToast } from "./Toast";
 
-const CATEGORY_LABELS: Record<MediaCategory, string> = {
-  pelicula: "🎬 Películas (TMDB)",
-  serie: "📺 Series (TMDB)",
-  videojuego: "🎮 Videojuegos (RAWG)",
-  cancion: "🎵 Canciones (iTunes)",
-  album: "💿 Álbumes (iTunes)",
-};
+const SEARCH_OPTIONS: Array<[MediaCategory, string]> = [
+  ["pelicula", "🎬 Películas (TMDB)"],
+  ["serie", "📺 Series (TMDB)"],
+  ["videojuego", "🎮 Videojuegos (RAWG)"],
+  ["cancion", "🎵 Álbumes y canciones (iTunes)"],
+];
+
+// La búsqueda de música mezcla ambos tipos, así que cada tarjeta dice cuál es.
+const MUSIC_KIND: Partial<Record<MediaCategory, string>> = { album: "Álbum", cancion: "Canción" };
 
 export function SearchView({
   addedIds,
@@ -69,9 +71,9 @@ export function SearchView({
       <h2>Buscar y clasificar</h2>
       <form onSubmit={handleSearch} className="search-row">
         <select value={category} onChange={(e) => setCategory(e.target.value as MediaCategory)}>
-          {(Object.keys(CATEGORY_LABELS) as MediaCategory[]).map((c) => (
+          {SEARCH_OPTIONS.map(([c, label]) => (
             <option key={c} value={c}>
-              {CATEGORY_LABELS[c]}
+              {label}
             </option>
           ))}
         </select>
@@ -105,7 +107,9 @@ export function SearchView({
               <button className="card-title-btn" onClick={() => setDetailItem(item)}>
                 {item.title}
               </button>
-              <p className="card-meta">{item.year ?? "s/f"}</p>
+              <p className="card-meta">
+                {[MUSIC_KIND[item.category], item.year ?? "s/f"].filter(Boolean).join(" · ")}
+              </p>
               {addedIds.has(item.id) ? (
                 <button className="added-btn" disabled>
                   ✓ Añadido al expediente

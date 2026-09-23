@@ -9,11 +9,16 @@ export const CATEGORY_LABELS: Record<MediaCategory, string> = {
   pelicula: "Películas",
   serie: "Series",
   videojuego: "Videojuegos",
-  cancion: "Canciones",
+  cancion: "Álbumes y canciones",
   album: "Álbumes",
 };
 
-export const CATEGORY_ORDER: MediaCategory[] = ["pelicula", "serie", "videojuego", "cancion", "album"];
+export const CATEGORY_ORDER: MediaCategory[] = ["pelicula", "serie", "videojuego", "cancion"];
+
+/** Para el usuario álbumes y canciones son una sola categoría; solo la ficha los distingue. */
+export function categoryGroup(category: MediaCategory): MediaCategory {
+  return category === "album" ? "cancion" : category;
+}
 
 export const TIER_COLORS: Record<string, string> = {
   S: "#d4af37",

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { MediaCategory, MediaItem } from "../types";
 import { getCommunityRankings, type CommunityEntry } from "../community";
 import { tierForPercentile } from "../ranking";
-import { CATEGORY_LABELS, CATEGORY_ORDER, TIER_COLORS } from "../uiConstants";
+import { CATEGORY_LABELS, CATEGORY_ORDER, TIER_COLORS, categoryGroup } from "../uiConstants";
 import { InfoCard } from "./InfoCard";
 import { PublicProfileModal } from "./PublicProfileModal";
 
@@ -37,9 +37,10 @@ export function CommunityView() {
   const byCategory = useMemo(() => {
     const map = new Map<MediaCategory, CommunityEntry[]>();
     for (const entry of entries ?? []) {
-      const arr = map.get(entry.item.category) ?? [];
+      const key = categoryGroup(entry.item.category);
+      const arr = map.get(key) ?? [];
       arr.push(entry);
-      map.set(entry.item.category, arr);
+      map.set(key, arr);
     }
     for (const arr of map.values()) arr.sort((a, b) => b.eloScore - a.eloScore);
     return map;
