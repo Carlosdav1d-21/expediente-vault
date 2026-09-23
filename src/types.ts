@@ -47,6 +47,7 @@ export interface CreditPerson {
 export interface AlbumTrack {
   name: string;
   duration: string | null; // "m:ss"
+  item: MediaItem; // la canción, para abrir su ficha
 }
 
 export interface MediaDetail {
@@ -64,7 +65,7 @@ export interface MediaDetail {
   ratingLabel: string | null; // "TMDB" | "Metacritic"
   people: CreditPerson[]; // reparto / equipo / artista
   peopleLabel: string; // "Reparto" | "Equipo" | "Artista"
-  facts: Array<{ label: string; value: string }>; // datos sueltos por categoría, en orden
+  facts: Array<{ label: string; value: string; link?: MediaItem }>; // datos sueltos; `link` abre la ficha de ese ítem
   previewAudioUrl: string | null; // solo canciones: clip de 30s
   tracks: AlbumTrack[]; // solo álbumes: lista de canciones en orden
 }

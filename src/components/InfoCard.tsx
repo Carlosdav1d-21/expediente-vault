@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DlcItem, MediaDetail, MediaItem, SeriesRatings } from "../types";
 import { fetchMediaDetail } from "../api/unifiedDetail";
 import { fetchSeriesRatings } from "../api/tmdbEpisodes";
@@ -12,7 +12,12 @@ import { DlcList } from "./DlcList";
  * hizo click y pide su detalle a la API que corresponda. Se cierra con la X,
  * con click fuera o con Escape.
  */
-export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => void }) {
+export function InfoCard({ item: initialItem, onClose }: { item: MediaItem; onClose: () => void }) {
+  // Fichas abiertas en orden (canción → su álbum → otra canción…); "Volver" regresa a la anterior.
+  const [history, setHistory] = useState<MediaItem[]>([initialItem]);
+  const item = history[history.length - 1];
+  const overlayRef = useRef<HTMLDivElement>(null);
+
   const [detail, setDetail] = useState<MediaDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +97,18 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
   }, [item]);
 
   useEffect(() => {
+    overlayRef.current?.scrollTo(0, 0);
+  }, [item]);
+
+  function openItem(next: MediaItem) {
+    setHistory((h) => [...h, next]);
+  }
+
+  function goBack() {
+    setHistory((h) => h.slice(0, -1));
+  }
+
+  useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
@@ -104,11 +121,17 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
   }, [onClose]);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" ref={overlayRef} onClick={onClose}>
       <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose} aria-label="Cerrar">
           ×
         </button>
+
+        {history.length > 1 && (
+          <button className="link-btn infocard-back" onClick={goBack}>
+            ← Volver
+          </button>
+        )}
 
         {loading && <p className="muted">Cargando ficha…</p>}
         {error && <p className="error-text">{error}</p>}
@@ -141,10 +164,18 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
 
             {detail.facts.length > 0 && (
               <dl className="infocard-facts">
-                {detail.facts.map((f) => (
-                  <div key={f.label} className="infocard-fact">
-                    <dt>{f.label}</dt>
-                    <dd>{f.value}</dd>
+                {detail.facts.map(({ label, value, link }) => (
+                  <div key={label} className="infocard-fact">
+                    <dt>{label}</dt>
+                    <dd>
+                      {link ? (
+                        <button className="link-btn" onClick={() => openItem(link)}>
+                          {value}
+                        </button>
+                      ) : (
+                        value
+                      )}
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -167,7 +198,9 @@ export function InfoCard({ item, onClose }: { item: MediaItem; onClose: () => vo
                   {detail.tracks.map((t, i) => (
                     <li key={i}>
                       <span className="track-num">{i + 1}</span>
-                      <span className="track-name">{t.name}</span>
+                      <button className="track-name track-btn" onClick={() => openItem(t.item)}>
+                        {t.name}
+                      </button>
                       {t.duration && <span className="track-duration">{t.duration}</span>}
                     </li>
                   ))}

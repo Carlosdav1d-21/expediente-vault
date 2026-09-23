@@ -51,10 +51,8 @@ function formatDuration(ms: number | undefined): string | null {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-export async function searchItunes(query: string): Promise<MediaItem[]> {
-  const results = await fetchItunes(`${ITUNES_BASE}?term=${encodeURIComponent(query)}&entity=song&limit=15`);
-
-  return results.map((r) => ({
+function songItem(r: ItunesResult): MediaItem {
+  return {
     id: `itunes-${r.trackId}`,
     source: "itunes",
     externalId: r.trackId ?? 0,
@@ -67,7 +65,12 @@ export async function searchItunes(query: string): Promise<MediaItem[]> {
     // no el dato crudo de la API.
     popularity: 50,
     metadata: { artist: r.artistName, album: r.collectionName ?? null, durationMs: r.trackTimeMillis ?? null },
-  } satisfies MediaItem));
+  };
+}
+
+export async function searchItunes(query: string): Promise<MediaItem[]> {
+  const results = await fetchItunes(`${ITUNES_BASE}?term=${encodeURIComponent(query)}&entity=song&limit=15`);
+  return results.map(songItem);
 }
 
 // ---------------------------------------------------------------------------
@@ -78,26 +81,32 @@ function isSingle(r: ItunesResult): boolean {
   return /\s-\sSingle$/i.test(r.collectionName ?? "") || (r.trackCount ?? 0) <= 1;
 }
 
+/** El álbum al que pertenece un resultado de iTunes, o null si no tiene o es un sencillo. */
+function albumItem(r: ItunesResult): MediaItem | null {
+  if (!r.collectionId || !r.collectionName || isSingle(r)) return null;
+  const artist = r.collectionArtistName ?? r.artistName;
+  return {
+    id: `itunes-album-${r.collectionId}`,
+    source: "itunes",
+    externalId: r.collectionId,
+    category: "album",
+    title: `${r.collectionName} — ${artist}`,
+    year: r.releaseDate ? Number(r.releaseDate.slice(0, 4)) : null,
+    imageUrl: upscaleArtwork(r.artworkUrl100),
+    popularity: 50,
+    metadata: { artist, trackCount: r.trackCount ?? null },
+  };
+}
+
 /**
  * Convierte resultados de iTunes (canciones o álbumes) en álbumes únicos, sin
  * sencillos, respetando el orden en que llegaron.
  */
 export function albumsFromResults(results: ItunesResult[]): MediaItem[] {
-  const byId = new Map<number, MediaItem>();
+  const byId = new Map<string, MediaItem>();
   for (const r of results) {
-    if (!r.collectionId || !r.collectionName || byId.has(r.collectionId) || isSingle(r)) continue;
-    const artist = r.collectionArtistName ?? r.artistName;
-    byId.set(r.collectionId, {
-      id: `itunes-album-${r.collectionId}`,
-      source: "itunes",
-      externalId: r.collectionId,
-      category: "album",
-      title: `${r.collectionName} — ${artist}`,
-      year: r.releaseDate ? Number(r.releaseDate.slice(0, 4)) : null,
-      imageUrl: upscaleArtwork(r.artworkUrl100),
-      popularity: 50,
-      metadata: { artist, trackCount: r.trackCount ?? null },
-    });
+    const album = albumItem(r);
+    if (album && !byId.has(album.id)) byId.set(album.id, album);
   }
   return [...byId.values()];
 }
@@ -127,8 +136,8 @@ export async function fetchSongDetail(trackId: number): Promise<MediaDetail> {
   const [r] = await fetchItunes(`${ITUNES_LOOKUP}?id=${trackId}&entity=song`);
   if (!r) throw new Error("iTunes no devolvió datos para esa canción.");
 
-  const facts: Array<{ label: string; value: string }> = [];
-  if (r.collectionName) facts.push({ label: "Álbum", value: r.collectionName });
+  const facts: MediaDetail["facts"] = [];
+  if (r.collectionName) facts.push({ label: "Álbum", value: r.collectionName, link: albumItem(r) ?? undefined });
   const duration = formatDuration(r.trackTimeMillis);
   if (duration) facts.push({ label: "Duración", value: duration });
   if (r.trackNumber && r.trackCount) {
@@ -167,6 +176,7 @@ export async function fetchAlbumDetail(collectionId: number): Promise<MediaDetai
   const tracks: AlbumTrack[] = songs.map((t) => ({
     name: t.trackName ?? "Sin título",
     duration: formatDuration(t.trackTimeMillis),
+    item: songItem(t),
   }));
   const totalMs = songs.reduce((sum, t) => sum + (t.trackTimeMillis ?? 0), 0);
 
