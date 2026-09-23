@@ -26,6 +26,7 @@ Expediente Vault junta las 4 categorías en un solo lugar y, en vez de pedirte q
 - Para videojuegos, **ver sus DLCs y expansiones** (RAWG), si tiene.
 - **Agregar ítems a tu expediente personal** y **compararlos de dos en dos** para que la app calcule el ranking automáticamente.
 - **Ver tu expediente ordenado**, con una insignia de rango (S, A, B, C, D) para cada ítem.
+- **Escribir una reseña (opcional)** de cualquier ítem de tu expediente, de hasta 1000 caracteres. Las reseñas de todos los usuarios aparecen en la ficha de cada ítem.
 - **Editar tu perfil**: nombre para mostrar, foto de perfil (subida a Supabase Storage) y contraseña.
 - **Comunidad**: ver el ranking de TODOS los usuarios registrados, agrupado por categoría — y tocar el nombre de cualquiera para abrir su expediente completo.
 - **Panel de administrador** (solo para cuentas con rol `admin`): estadísticas del sistema y la bitácora de auditoría de todos los usuarios. Un usuario normal ni siquiera ve esas pestañas.
@@ -96,6 +97,7 @@ npm run test
 - Expediente y perfil persistidos en Postgres (Supabase), con RLS
 - Edición de perfil: nombre para mostrar, foto (Supabase Storage), contraseña
 - Comunidad: rankings de todos los usuarios + ver el expediente público de cualquiera
+- Reseñas escritas opcionales, visibles para todos en la ficha de cada ítem (límite de 1000 caracteres también en la base de datos; la fecha la pone el servidor)
 - Panel de administrador con control de acceso por rol (RBAC) y bitácora de auditoría completa
 - Rediseño visual con tema claro/oscuro, logo y favicon propios
 - Suite de tests (Vitest) sobre la lógica de negocio propia
@@ -103,5 +105,4 @@ npm run test
 
 **Fuera de alcance para esta entrega (roadmap):**
 - Recomendaciones basadas en lo que el usuario ha rankeado
-- Reseñas escritas por otros usuarios registrados
 - Comparación de afinidad de gustos entre usuarios (ya se pueden ver los rankings de todos; falta el cálculo de "qué tan parecidos son tus gustos a los de otro usuario")

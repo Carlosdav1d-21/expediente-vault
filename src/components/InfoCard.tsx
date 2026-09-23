@@ -6,6 +6,7 @@ import { fetchGameDlcs } from "../api/rawg";
 import { EpisodeGrid } from "./EpisodeGrid";
 import { ScoreBox } from "./ScoreBox";
 import { DlcList } from "./DlcList";
+import { ItemReviews } from "./ItemReviews";
 
 /**
  * Modal de ficha ampliada (info card). Recibe el MediaItem sobre el que se
@@ -224,6 +225,8 @@ export function InfoCard({ item: initialItem, onClose }: { item: MediaItem; onCl
                 </ul>
               </div>
             )}
+
+            <ItemReviews itemId={item.id} />
           </div>
         )}
       </div>

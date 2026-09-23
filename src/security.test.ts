@@ -6,6 +6,7 @@ import {
   hashPassword,
   registerFailedAttempt,
   sanitizeInput,
+  sanitizeReview,
   verifyPassword,
 } from "./security";
 
@@ -24,6 +25,24 @@ describe("sanitizeInput", () => {
 
   it("trunca a 200 caracteres como límite defensivo", () => {
     expect(sanitizeInput("a".repeat(300)).length).toBe(200);
+  });
+});
+
+describe("sanitizeReview", () => {
+  it("quita HTML y caracteres de control pero conserva los párrafos", () => {
+    expect(sanitizeReview("<b>Buenísima</b>\x00\r\nLa volvería a ver.")).toBe("Buenísima\nLa volvería a ver.");
+  });
+
+  it("deja como máximo una línea en blanco seguida", () => {
+    expect(sanitizeReview("uno\n\n\n\n\ndos")).toBe("uno\n\ndos");
+  });
+
+  it("trunca a 1000 caracteres, igual que el límite de la base de datos", () => {
+    expect(sanitizeReview("a".repeat(1500)).length).toBe(1000);
+  });
+
+  it("una reseña solo de espacios queda vacía", () => {
+    expect(sanitizeReview("   \n\n  ")).toBe("");
   });
 });
 

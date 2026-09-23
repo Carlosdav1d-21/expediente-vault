@@ -598,6 +598,122 @@ label {
   color: var(--text);
 }
 
+/* ---------- Reseñas ---------- */
+.dossier-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dossier-review {
+  margin: 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-dim);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dossier-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.review-btn {
+  background: none;
+  color: var(--text-dim);
+}
+
+.review-btn:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.dossier-editor {
+  grid-column: 1 / -1;
+}
+
+.review-editor textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 90px;
+  resize: vertical;
+  font: inherit;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 10px;
+}
+
+.review-editor textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: var(--accent);
+}
+
+.review-editor-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.review-editor-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.review-editor-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.infocard-reviews {
+  margin-top: 16px;
+}
+
+.infocard-reviews ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.review-author {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.review-meta {
+  color: var(--text-faint);
+}
+
+.review-text {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
 /* ---------- Auditoría ---------- */
 .audit-log {
   display: flex;
@@ -1193,5 +1309,11 @@ label {
     margin-left: 0;
     margin-top: 0;
     align-self: flex-start;
+  }
+
+  /* Los botones de la fila del expediente bajan a su propia línea. */
+  .dossier-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
   }
 }

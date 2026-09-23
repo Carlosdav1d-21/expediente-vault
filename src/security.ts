@@ -84,6 +84,23 @@ export function sanitizeInput(raw: string): string {
     .slice(0, 200); // límite defensivo de longitud
 }
 
+export const REVIEW_MAX_LENGTH = 1000;
+
+/**
+ * Como sanitizeInput, pero para reseñas: conserva los saltos de línea
+ * (máximo una línea en blanco seguida) y permite textos más largos.
+ */
+export function sanitizeReview(raw: string): string {
+  return raw
+    .replace(/<[^>]*>/g, "")
+    .replace(/\r\n?/g, "\n")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+    .slice(0, REVIEW_MAX_LENGTH);
+}
+
 export interface RateLimitResult {
   allowed: boolean;
   reason?: "locked";

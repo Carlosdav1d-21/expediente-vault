@@ -10,7 +10,7 @@ import { AuditView } from "./components/AuditView";
 import { AdminView } from "./components/AdminView";
 import { getCurrentProfile, getCurrentUsername, logout, onAuthChange } from "./auth";
 import type { Role } from "./auth";
-import { addToDossier, getDossier, recordDuel, removeFromDossier } from "./dossier";
+import { addToDossier, getDossier, recordDuel, removeFromDossier, saveReview } from "./dossier";
 import { getAuditLog } from "./audit";
 import type { RankingEntry, AuditLogEntry } from "./types";
 
@@ -202,6 +202,12 @@ function App() {
             setEntries(updated);
             void refreshLog();
             return !updated.some((e) => e.itemId === id);
+          }}
+          onSaveReview={async (entry, text) => {
+            const { ok, entries: updated } = await saveReview(entry, text);
+            setEntries(updated);
+            void refreshLog();
+            return ok;
           }}
         />
       )}

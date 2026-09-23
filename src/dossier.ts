@@ -9,6 +9,7 @@ import type { MediaItem, RankingEntry } from "./types";
 import { supabase } from "./lib/supabase";
 import { createRankingEntry, resolveDuel } from "./ranking";
 import { logAction } from "./audit";
+import { sanitizeReview } from "./security";
 
 interface RankingRow {
   item_id: string;
@@ -17,6 +18,7 @@ interface RankingRow {
   comparisons: number;
   added_at: string;
   updated_at: string;
+  review: string | null;
 }
 
 function rowToEntry(r: RankingRow): RankingEntry {
@@ -27,6 +29,7 @@ function rowToEntry(r: RankingRow): RankingEntry {
     comparisons: r.comparisons,
     addedAt: r.added_at,
     updatedAt: r.updated_at,
+    review: r.review,
   };
 }
 
@@ -53,7 +56,7 @@ export async function getDossier(): Promise<RankingEntry[]> {
 
   const { data, error } = await supabase
     .from("rankings")
-    .select("item_id, item, elo_score, comparisons, added_at, updated_at")
+    .select("item_id, item, elo_score, comparisons, added_at, updated_at, review")
     .eq("user_id", userId);
   if (error || !data) return [];
   return (data as RankingRow[]).map(rowToEntry);
@@ -87,6 +90,25 @@ export async function removeFromDossier(itemId: string): Promise<RankingEntry[]>
 
   if (!error && target) void logAction("item_removed", target.item.title);
   return getDossier();
+}
+
+/** Guarda (o borra, si queda vacía) la reseña de un ítem del expediente propio. */
+export async function saveReview(
+  entry: RankingEntry,
+  raw: string
+): Promise<{ ok: boolean; entries: RankingEntry[] }> {
+  const userId = await currentUserId();
+  if (!userId) return { ok: false, entries: await getDossier() };
+
+  const review = sanitizeReview(raw) || null;
+  const { error } = await supabase
+    .from("rankings")
+    .update({ review })
+    .eq("user_id", userId)
+    .eq("item_id", entry.itemId);
+
+  if (!error) void logAction(review ? "review_saved" : "review_deleted", entry.item.title);
+  return { ok: !error, entries: await getDossier() };
 }
 
 export async function recordDuel(

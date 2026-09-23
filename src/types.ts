@@ -106,6 +106,7 @@ export interface RankingEntry {
   comparisons: number; // cuántos duelos ha disputado
   addedAt: string; // ISO timestamp
   updatedAt: string;
+  review?: string | null; // reseña escrita opcional
 }
 
 export interface User {
@@ -126,6 +127,8 @@ export type AuditAction =
   | "item_added"
   | "item_removed"
   | "duel_resolved"
+  | "review_saved"
+  | "review_deleted"
   | "profile_updated"
   | "storage_migrated";
 

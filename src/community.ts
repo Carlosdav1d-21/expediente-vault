@@ -68,6 +68,48 @@ export async function getCommunityRankings(): Promise<CommunityEntry[]> {
   });
 }
 
+export interface ItemReview {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  review: string;
+  reviewedAt: string | null;
+}
+
+/** Todas las reseñas de un ítem, de cualquier usuario, la más reciente primero. */
+export async function getItemReviews(itemId: string): Promise<ItemReview[]> {
+  const { data, error } = await supabase
+    .from("rankings")
+    .select("user_id, review, reviewed_at")
+    .eq("item_id", itemId)
+    .not("review", "is", null)
+    .order("reviewed_at", { ascending: false });
+  if (error || !data?.length) return [];
+
+  const rows = data as Array<{ user_id: string; review: string; reviewed_at: string | null }>;
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, avatar_url")
+    .in(
+      "id",
+      rows.map((r) => r.user_id)
+    );
+  const profileById = new Map(((profiles as ProfileRow[] | null) ?? []).map((p) => [p.id, p]));
+
+  return rows.map((r) => {
+    const profile = profileById.get(r.user_id);
+    return {
+      userId: r.user_id,
+      username: profile?.username ?? "desconocido",
+      displayName: profile?.display_name ?? null,
+      avatarUrl: profile?.avatar_url ?? null,
+      review: r.review,
+      reviewedAt: r.reviewed_at,
+    };
+  });
+}
+
 /** El expediente de UN usuario en particular (para ver su perfil público). */
 export async function getUserRankings(userId: string): Promise<RankingEntry[]> {
   const { data, error } = await supabase
