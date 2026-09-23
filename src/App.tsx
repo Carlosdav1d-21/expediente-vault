@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { LoginView } from "./components/LoginView";
 import { SearchView } from "./components/SearchView";
@@ -42,6 +42,7 @@ function App() {
   const [theme, setTheme] = useState<Theme | null>(() => readStoredTheme());
 
   const isDark = theme ? theme === "dark" : systemPrefersDark();
+  const addedIds = useMemo(() => new Set(entries.map((e) => e.itemId)), [entries]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -173,9 +174,12 @@ function App() {
 
       {tab === "buscar" && (
         <SearchView
+          addedIds={addedIds}
           onAdd={async (item) => {
-            setEntries(await addToDossier(item));
+            const updated = await addToDossier(item);
+            setEntries(updated);
             void refreshLog();
+            return updated.some((e) => e.itemId === item.id);
           }}
         />
       )}

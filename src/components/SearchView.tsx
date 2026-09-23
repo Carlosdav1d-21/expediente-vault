@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { MediaCategory, MediaItem } from "../types";
 import { searchByCategory } from "../api/unifiedSearch";
 import { InfoCard } from "./InfoCard";
@@ -10,13 +10,54 @@ const CATEGORY_LABELS: Record<MediaCategory, string> = {
   cancion: "🎵 Canciones (iTunes)",
 };
 
-export function SearchView({ onAdd }: { onAdd: (item: MediaItem) => void }) {
+const TOAST_MS = 3000;
+
+interface Toast {
+  ok: boolean;
+  text: string;
+}
+
+export function SearchView({
+  addedIds,
+  onAdd,
+}: {
+  addedIds: ReadonlySet<string>;
+  onAdd: (item: MediaItem) => Promise<boolean>;
+}) {
   const [category, setCategory] = useState<MediaCategory>("pelicula");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<MediaItem | null>(null);
+  const [adding, setAdding] = useState<ReadonlySet<string>>(new Set());
+  const [toast, setToast] = useState<Toast | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), TOAST_MS);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  async function handleAdd(item: MediaItem) {
+    setAdding((s) => new Set(s).add(item.id));
+    let ok: boolean;
+    try {
+      ok = await onAdd(item);
+    } catch {
+      ok = false;
+    }
+    setAdding((s) => {
+      const next = new Set(s);
+      next.delete(item.id);
+      return next;
+    });
+    setToast(
+      ok
+        ? { ok: true, text: `“${item.title}” se añadió a tu expediente` }
+        : { ok: false, text: `No se pudo añadir “${item.title}”. Intenta de nuevo.` }
+    );
+  }
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -76,13 +117,33 @@ export function SearchView({ onAdd }: { onAdd: (item: MediaItem) => void }) {
                 {item.title}
               </button>
               <p className="card-meta">{item.year ?? "s/f"}</p>
-              <button onClick={() => onAdd(item)}>+ Añadir al expediente</button>
+              {addedIds.has(item.id) ? (
+                <button className="added-btn" disabled>
+                  ✓ Añadido al expediente
+                </button>
+              ) : (
+                <button onClick={() => handleAdd(item)} disabled={adding.has(item.id)}>
+                  {adding.has(item.id) ? "Añadiendo…" : "+ Añadir al expediente"}
+                </button>
+              )}
             </div>
           </div>
         ))}
       </div>
 
       {detailItem && <InfoCard item={detailItem} onClose={() => setDetailItem(null)} />}
+
+      {/* La región existe siempre para que los lectores de pantalla anuncien el aviso al aparecer. */}
+      <div className="toast-region" role="status" aria-live="polite">
+        {toast && (
+          <div className={toast.ok ? "toast" : "toast toast-error"}>
+            <span className="toast-icon" aria-hidden="true">
+              {toast.ok ? "✓" : "!"}
+            </span>
+            {toast.text}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
