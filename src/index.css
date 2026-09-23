@@ -1054,6 +1054,7 @@ label {
 
 .infocard-head .scorebox {
   margin-left: auto;
+  margin-top: 24px; /* deja libre la esquina de la X de cerrar */
   align-self: flex-start;
 }
 
@@ -1127,6 +1128,7 @@ label {
 
   .infocard-head .scorebox {
     margin-left: 0;
+    margin-top: 0;
     align-self: flex-start;
   }
 }
